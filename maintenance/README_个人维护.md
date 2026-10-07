@@ -82,3 +82,10 @@ maintenance/personal-overlay/
 ```
 
 不要把私人插件、数据库、世界文件、日志或 Token 提交到 upstream。
+## 仓库内同步工具
+
+```powershell
+.\maintenance\tools\Sync-Upstream.ps1 -Mode Check
+.\maintenance\tools\Sync-Upstream.ps1 -Mode UpdateMain
+.\maintenance\tools\Sync-Upstream.ps1 -Mode MergePersonal
+```
