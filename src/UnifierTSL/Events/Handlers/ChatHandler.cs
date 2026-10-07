@@ -38,9 +38,14 @@ namespace UnifierTSL.Events.Handlers
                 Console.WriteAnsi(ansi);
             }
             else if (UserId == byte.MaxValue) {
-                SourceServer.Console.ForegroundColor = color.ToConsoleColor();
-                SourceServer.Console.WriteLine(message);
-                SourceServer.Console.ForegroundColor = ConsoleColor.Gray;
+                try {
+                    SourceServer.Console.ForegroundColor = color.ToConsoleColor();
+                    SourceServer.Console.WriteLine(message);
+                    SourceServer.Console.ForegroundColor = ConsoleColor.Gray;
+                }
+                catch {
+                    SourceServer.Console.WriteLine(message);
+                }
             }
             else {
                 SourceServer.ChatHelper.SendChatMessageToClient(NetworkText.FromLiteral(message), color, UserId);

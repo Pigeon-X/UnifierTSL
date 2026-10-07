@@ -14,10 +14,15 @@ namespace UnifierTSL
         }
 
         public static void UpdateTitle(bool empty = false) {
-            Console.Title = $"UnifierTSL " +
-                            $"- {(empty ? 0 : UnifiedServerCoordinator.GetActiveClientCount())}/{byte.MaxValue} " +
-                            $"@ {UnifiedServerCoordinator.ListeningEndpoint} " +
-                            $"USP for Terraria v{VersionHelper.TerrariaVersion}";
+            try {
+                Console.Title = $"UnifierTSL " +
+                                $"- {(empty ? 0 : UnifiedServerCoordinator.GetActiveClientCount())}/{byte.MaxValue} " +
+                                $"@ {UnifiedServerCoordinator.ListeningEndpoint} " +
+                                $"USP for Terraria v{VersionHelper.TerrariaVersion}";
+            }
+            catch {
+                // 远程/无交互式控制台环境下不能设置标题，不影响服务端运行。
+            }
         }
         public static string LibraryDirectory => AppContext.BaseDirectory;
         public static string BaseDirectory => Directory.GetCurrentDirectory();

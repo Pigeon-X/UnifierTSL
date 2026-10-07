@@ -18,7 +18,12 @@ namespace UnifierTSL
         private static void Run() {
             VersionHelper version = UnifierApi.VersionHelper;
 
-            Console.Title = "UnifierTSLauncher";
+            try {
+                Console.Title = "UnifierTSLauncher";
+            }
+            catch {
+                // 远程/无交互式控制台环境下不能设置标题，不影响服务端运行。
+            }
 
             Console.WriteLine(@" ╔════════════════════════════════════════════════════════════════════════════════════╗");
             Console.WriteLine(@"╔═══════════════════════════════════════════════════════════════════════════════════╗╗║");

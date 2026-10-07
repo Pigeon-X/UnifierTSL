@@ -361,7 +361,8 @@ namespace UnifierTSL
         public static void Launch(int listenPort, string password = "") {
             ServerPassword = password;
             broadcastClient.EnableBroadcast = true;
-            if (!listenerController.TryRebindPort(listenPort, hasListeningWork: false, out ListenerChange change)) {
+            bool shouldListenAtStartup = servers.Length > 0;
+            if (!listenerController.TryRebindPort(listenPort, hasListeningWork: shouldListenAtStartup, out ListenerChange change)) {
                 Logger.Warning(
                     category: "Listener",
                     message: GetParticularString("{0} is requested listen port", $"Cannot initialize listener to invalid port '{listenPort}'."));
@@ -858,7 +859,7 @@ namespace UnifierTSL
         }
 
         private static bool HasListeningWork() {
-            return servers.Any(s => s.IsRunning) && GetClientSpace() > 0;
+            return servers.Any(s => s.IsRunning || s.RunningThread?.IsAlive == true) && GetClientSpace() > 0;
         }
 
         public static void TransferPlayerToServer(byte plr, ServerContext to, bool ignoreChecks = false) {

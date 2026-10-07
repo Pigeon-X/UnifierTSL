@@ -15,15 +15,47 @@ public abstract partial class ServerSurfaceConsole
     private ServerConsoleReadScope? consoleReadScope;
     private StatusProjectionRuntime? statusRuntime;
     private bool runtimeInitialized;
-    private ConsoleColor cachedBackgroundColor = System.Console.BackgroundColor;
-    private ConsoleColor cachedForegroundColor = System.Console.ForegroundColor;
-    private Encoding cachedInputEncoding = System.Console.InputEncoding;
-    private Encoding cachedOutputEncoding = System.Console.OutputEncoding;
-    private int cachedWindowHeight = System.Console.WindowHeight;
-    private int cachedWindowLeft = System.Console.WindowLeft;
-    private int cachedWindowTop = System.Console.WindowTop;
-    private int cachedWindowWidth = System.Console.WindowWidth;
+    private ConsoleColor cachedBackgroundColor = SafeGetBackgroundColor();
+    private ConsoleColor cachedForegroundColor = SafeGetForegroundColor();
+    private Encoding cachedInputEncoding = SafeGetInputEncoding();
+    private Encoding cachedOutputEncoding = SafeGetOutputEncoding();
+    private int cachedWindowHeight = SafeGetWindowHeight();
+    private int cachedWindowLeft = SafeGetWindowLeft();
+    private int cachedWindowTop = SafeGetWindowTop();
+    private int cachedWindowWidth = SafeGetWindowWidth();
     private string cachedTitle = string.Empty;
+
+    private static ConsoleColor SafeGetBackgroundColor() {
+        try { return System.Console.BackgroundColor; } catch { return ConsoleColor.Black; }
+    }
+
+    private static ConsoleColor SafeGetForegroundColor() {
+        try { return System.Console.ForegroundColor; } catch { return ConsoleColor.Gray; }
+    }
+
+    private static Encoding SafeGetInputEncoding() {
+        try { return System.Console.InputEncoding; } catch { return Encoding.UTF8; }
+    }
+
+    private static Encoding SafeGetOutputEncoding() {
+        try { return System.Console.OutputEncoding; } catch { return Encoding.UTF8; }
+    }
+
+    private static int SafeGetWindowHeight() {
+        try { return System.Console.WindowHeight; } catch { return 24; }
+    }
+
+    private static int SafeGetWindowLeft() {
+        try { return System.Console.WindowLeft; } catch { return 0; }
+    }
+
+    private static int SafeGetWindowTop() {
+        try { return System.Console.WindowTop; } catch { return 0; }
+    }
+
+    private static int SafeGetWindowWidth() {
+        try { return System.Console.WindowWidth; } catch { return 80; }
+    }
 
     public virtual bool HasActiveSurfaceActivity => StatusRuntime.HasActiveActivity;
 
