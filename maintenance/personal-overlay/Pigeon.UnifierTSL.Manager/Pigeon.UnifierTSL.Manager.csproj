@@ -14,4 +14,10 @@
     <ApplicationIcon />
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Update="manager.example.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

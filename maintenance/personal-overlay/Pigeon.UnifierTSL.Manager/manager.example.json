@@ -1,0 +1,15 @@
+{
+  "managerName": "Pigeon UnifierTSL Manager",
+  "startAllSequential": true,
+  "stopTimeoutSeconds": 6,
+  "servers": [
+    {
+      "name": "UnifierTSL 实例",
+      "rootPath": "D:\\Terraria\\UnifierTSL",
+      "executable": "UnifierTSL.exe",
+      "arguments": "-port 7777 -joinserver first",
+      "enabled": true,
+      "remark": "把 rootPath 改成实际 UnifierTSL 发布目录"
+    }
+  ]
+}
