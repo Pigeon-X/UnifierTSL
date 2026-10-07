@@ -41,25 +41,25 @@ $sample = [ordered]@{
   stopTimeoutSeconds = 6
   servers = @(
     [ordered]@{
-      name = 'S1 内置生存服'
-      rootPath = 'UTSL'
-      executable = 'UnifierTSL.exe'
+      name = 'S1 生存服'
+      rootPath = '.'
+      executable = 'UnifierTSL.Core.exe'
       arguments = ''
       enabled = $true
-      remark = '使用管理器内置 UTSL 目录'
+      remark = '由 UnifierTSL.exe 管理器调用同目录核心'
     },
     [ordered]@{
       name = 'S2 资源'
-      rootPath = 'UTSL-S2'
-      executable = 'UnifierTSL.exe'
+      rootPath = 'S2'
+      executable = 'UnifierTSL.Core.exe'
       arguments = ''
       enabled = $true
       remark = '第 2 个控制台实例'
     },
     [ordered]@{
       name = 'S3 建筑'
-      rootPath = 'UTSL-S3'
-      executable = 'UnifierTSL.exe'
+      rootPath = 'S3'
+      executable = 'UnifierTSL.Core.exe'
       arguments = ''
       enabled = $true
       remark = '第 3 个控制台实例'

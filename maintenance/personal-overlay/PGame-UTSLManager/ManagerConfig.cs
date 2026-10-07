@@ -74,12 +74,12 @@ public sealed class ManagerConfig
     {
         return new ServerProfile
         {
-            Name = "S1 内置生存服",
-            RootPath = "UTSL",
-            Executable = "UnifierTSL.exe",
+            Name = "S1 生存服",
+            RootPath = ".",
+            Executable = "UnifierTSL.Core.exe",
             Arguments = "",
             Enabled = true,
-            Remark = "管理器内置 UTSL 目录"
+            Remark = "由 UnifierTSL.exe 管理器调用同目录核心"
         };
     }
 }
