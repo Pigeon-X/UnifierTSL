@@ -10,7 +10,7 @@ maintenance/
 │  ├─ TransferPatch.json
 │  └─ Apply-SourceLocalization.ps1
 ├─ personal-overlay/
-│  ├─ Pigeon.UnifierTSL.Manager/
+│  ├─ PGame-UTSLManager/
 │  └─ README.md
 └─ tools/
    ├─ Build-Personal.ps1
@@ -63,6 +63,8 @@ powershell -NoProfile -ExecutionPolicy Bypass `
 
 管理器不会修改 UnifierTSL 官方配置，只是按 `manager.json` 启动/停止你配置的
 UnifierTSL 实例，并提供 TSM 风格的 3 控制台同屏、路径入口和运行概览。
+发布时会默认把本机 `UTSL生存服` 复制到管理器的 `UTSL\` 目录，默认实例直接调用内置的
+`UTSL\UnifierTSL.exe`；“全启”按 TSM 逻辑逐个等待端口就绪后启动下一台。
 
 ## 同步官方上游
 

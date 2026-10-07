@@ -3,7 +3,7 @@ using System.Windows;
 using System.Windows.Media;
 using Microsoft.Win32;
 
-namespace PigeonUnifierTSL.Manager;
+namespace PGame.UTSLManager;
 
 public partial class App : Application
 {
@@ -14,7 +14,7 @@ public partial class App : Application
             LogCrash("DispatcherUnhandledException", e.Exception);
             MessageBox.Show(
                 "界面发生未处理异常：\n\n" + e.Exception.Message,
-                "Pigeon UnifierTSL Manager",
+                "PGame-UTSLManager",
                 MessageBoxButton.OK,
                 MessageBoxImage.Error);
             e.Handled = true;

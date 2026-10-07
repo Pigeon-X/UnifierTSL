@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
+using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Text.Json;
@@ -8,7 +9,7 @@ using System.Windows;
 using System.Windows.Documents;
 using System.Windows.Media;
 
-namespace PigeonUnifierTSL.Manager;
+namespace PGame.UTSLManager;
 
 public sealed class ManagedServer : INotifyPropertyChanged
 {
@@ -34,7 +35,21 @@ public sealed class ManagedServer : INotifyPropertyChanged
     public FlowDocument Document { get; }
 
     public string Name => Profile.Name;
-    public string RootPath => Expand(Profile.RootPath);
+    public string RootPath
+    {
+        get
+        {
+            var path = Expand(Profile.RootPath);
+            if (string.IsNullOrWhiteSpace(path))
+            {
+                return AppContext.BaseDirectory;
+            }
+
+            return Path.IsPathRooted(path)
+                ? path
+                : Path.Combine(AppContext.BaseDirectory, path);
+        }
+    }
     public string ExecutablePath
     {
         get
@@ -53,7 +68,8 @@ public sealed class ManagedServer : INotifyPropertyChanged
     public string LogsPath => Path.Combine(RootPath, "logs");
     public string ProfilePath => RootPath;
     public string DisplayPath => RootPath;
-    public string PortText => ResolvePort() is var port && port > 0 ? port.ToString() : "-";
+    public int PortNumber => ResolvePort();
+    public string PortText => PortNumber > 0 ? PortNumber.ToString() : "-";
     public string ProcessIdText => _process?.Id.ToString() ?? "-";
     public string UptimeText
     {
@@ -160,6 +176,43 @@ public sealed class ManagedServer : INotifyPropertyChanged
         process.BeginErrorReadLine();
         OnPropertyChanged(nameof(ProcessIdText));
         OnPropertyChanged(nameof(PortText));
+    }
+
+    public async Task<bool> WaitUntilReadyAsync(TimeSpan timeout, CancellationToken cancellationToken = default)
+    {
+        var deadline = DateTime.UtcNow + timeout;
+        var port = PortNumber;
+        while (DateTime.UtcNow < deadline && !cancellationToken.IsCancellationRequested)
+        {
+            if (_process == null || _process.HasExited)
+            {
+                return false;
+            }
+
+            if (port > 0 && await CanConnectAsync(port, cancellationToken).ConfigureAwait(false))
+            {
+                StatusText = "已就绪";
+                return true;
+            }
+
+            await Task.Delay(500, cancellationToken).ConfigureAwait(false);
+        }
+
+        return false;
+    }
+
+    private static async Task<bool> CanConnectAsync(int port, CancellationToken cancellationToken)
+    {
+        try
+        {
+            using var client = new TcpClient();
+            await client.ConnectAsync("127.0.0.1", port, cancellationToken).ConfigureAwait(false);
+            return client.Connected;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     public async Task StopAsync(TimeSpan timeout)

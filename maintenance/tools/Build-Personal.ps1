@@ -21,12 +21,12 @@ if ($LASTEXITCODE -ne 0) { throw 'UnifierTSL 编译失败' }
 
 if ($BuildManager) {
   Write-Host '=== 3. 编译 TSM 风格个人管理器 ===' -ForegroundColor Cyan
-  $managerProject = Join-Path $repoRoot 'maintenance\personal-overlay\Pigeon.UnifierTSL.Manager\Pigeon.UnifierTSL.Manager.csproj'
+  $managerProject = Join-Path $repoRoot 'maintenance\personal-overlay\PGame-UTSLManager\PGame-UTSLManager.csproj'
   if (-not (Test-Path -LiteralPath $managerProject)) { throw "找不到管理器项目：$managerProject" }
   $managerArgs = @('build', $managerProject, '-c', $Configuration)
   if ($NoRestore) { $managerArgs += '--no-restore' }
   & dotnet @managerArgs
-  if ($LASTEXITCODE -ne 0) { throw 'Pigeon UnifierTSL Manager 编译失败' }
+  if ($LASTEXITCODE -ne 0) { throw 'PGame-UTSLManager 编译失败' }
 }
 
 Write-Host '个人版 UnifierTSL 编译完成。' -ForegroundColor Green

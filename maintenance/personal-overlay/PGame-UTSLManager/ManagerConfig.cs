@@ -1,7 +1,7 @@
 using System.IO;
 using System.Text.Json;
 
-namespace PigeonUnifierTSL.Manager;
+namespace PGame.UTSLManager;
 
 public sealed class ManagerConfig
 {
@@ -12,10 +12,11 @@ public sealed class ManagerConfig
         PropertyNameCaseInsensitive = true
     };
 
-    public string ManagerName { get; set; } = "Pigeon UnifierTSL Manager";
+    public string ManagerName { get; set; } = "PGame-UTSLManager";
     public List<ServerProfile> Servers { get; set; } = [];
     public bool StartAllSequential { get; set; } = true;
     public int StopTimeoutSeconds { get; set; } = 6;
+    public int StartReadyTimeoutSeconds { get; set; } = 120;
 
     public static string ConfigPath => Path.Combine(AppContext.BaseDirectory, "manager.json");
 
@@ -73,12 +74,12 @@ public sealed class ManagerConfig
     {
         return new ServerProfile
         {
-            Name = "UnifierTSL 本机实例",
-            RootPath = AppContext.BaseDirectory,
+            Name = "S1 内置生存服",
+            RootPath = "UTSL",
             Executable = "UnifierTSL.exe",
-            Arguments = "-port 7777 -joinserver first",
+            Arguments = "",
             Enabled = true,
-            Remark = "首次运行请把 RootPath 改成你的 UnifierTSL 发布目录，并填写实际启动参数。"
+            Remark = "管理器内置 UTSL 目录"
         };
     }
 }

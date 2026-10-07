@@ -10,7 +10,7 @@ using System.Windows.Media;
 using System.Windows.Shapes;
 using System.Windows.Threading;
 
-namespace PigeonUnifierTSL.Manager;
+namespace PGame.UTSLManager;
 
 public partial class MainWindow : Window
 {
@@ -339,6 +339,11 @@ public partial class MainWindow : Window
 
     private async void StartAllButton_Click(object sender, RoutedEventArgs e)
     {
+        await StartAllSequentialAsync();
+    }
+
+    private async Task StartAllSequentialAsync()
+    {
         foreach (var server in Servers.Where(s => !s.IsRunning))
         {
             try
@@ -346,7 +351,12 @@ public partial class MainWindow : Window
                 server.Start();
                 if (_config.StartAllSequential)
                 {
-                    await Task.Delay(1200);
+                    var ready = await server.WaitUntilReadyAsync(
+                        TimeSpan.FromSeconds(Math.Max(10, _config.StartReadyTimeoutSeconds)));
+                    if (!ready)
+                    {
+                        server.AppendError("[启动] 等待端口就绪超时，继续下一台实例。");
+                    }
                 }
             }
             catch (Exception ex)
@@ -354,6 +364,8 @@ public partial class MainWindow : Window
                 server.AppendError($"[启动失败] {ex.Message}");
                 MessageBox.Show(ex.Message, $"启动失败：{server.Name}", MessageBoxButton.OK, MessageBoxImage.Warning);
             }
+
+            UpdateActionStates();
         }
 
         UpdateActionStates();
@@ -500,7 +512,7 @@ public partial class MainWindow : Window
     private void About_Click(object sender, RoutedEventArgs e)
     {
         MessageBox.Show(
-            "Pigeon UnifierTSL Manager 1.1.0\n\n" +
+            "PGame-UTSLManager 1.2.0\n\n" +
             "TSM 风格的单 EXE 多实例管理界面。\n" +
             "支持 3 个控制台同屏、独立启停、配置入口和运行概览。",
             "关于",
