@@ -10,11 +10,9 @@ maintenance/
 │  ├─ TransferPatch.json
 │  └─ Apply-SourceLocalization.ps1
 ├─ personal-overlay/
-│  ├─ PGame-UTSLManager/
 │  └─ README.md
 └─ tools/
-   ├─ Build-Personal.ps1
-   └─ Publish-Manager.ps1
+   └─ Build-Personal.ps1
 ```
 
 ## 汉化边界
@@ -46,42 +44,6 @@ powershell -NoProfile -ExecutionPolicy Bypass `
 ```text
 src/UnifierTSL/UnifierTSL.csproj
 ```
-
-同时编译 TSM 风格个人管理器：
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass `
-  -File .\maintenance\tools\Build-Personal.ps1 -Configuration Release -BuildManager
-```
-
-发布自包含管理器：
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass `
-  -File .\maintenance\tools\Publish-Manager.ps1 -Configuration Release
-```
-
-管理器不会修改 UnifierTSL 官方配置，只是按 `manager.json` 启动/停止你配置的
-UnifierTSL 实例，并提供 TSM 风格的 3 控制台同屏、路径入口和运行概览。
-发布时会默认把本机 `UTSL生存服` 复制到管理器的 `UTSL\` 目录，默认实例直接调用内置的
-`UTSL\UnifierTSL.exe`；“全启”按 TSM 逻辑逐个等待端口就绪后启动下一台。
-
-按“UTSL 本体就是管理器”的目录结构发布：
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass `
-  -File .\maintenance\tools\Publish-UnifierTSL-UI.ps1 `
-  -Configuration Release `
-  -CorePackagePath "C:\Users\59934\Saved Games\流光核心源码\_发布\UTSL生存服_远程SQLite" `
-  -OutputPath "C:\Users\59934\Saved Games\流光核心源码\_发布\UnifierTSL_UI_20261007"
-```
-
-该结构下：
-
-- `UnifierTSL.exe`：TSM 风格 UI 管理器；
-- `UnifierTSL.Core.exe`：原 UTSL 核心，底层逻辑不变；
-- `manager.json`：默认调用同目录 `UnifierTSL.Core.exe`；
-- 默认游戏端口 `2020`，REST `7890`。
 
 ## 同步官方上游
 
