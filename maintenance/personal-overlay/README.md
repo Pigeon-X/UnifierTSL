@@ -8,6 +8,7 @@
 - 支持多个 UnifierTSL 发布目录；
 - 支持启动、停止、全部启动、全部停止；
 - 支持控制台输出、stdin 指令和运行概览；
+- 支持 3 个 UnifierTSL 实例控制台同屏显示和独立启停；
 - 支持打开服务器目录、`config/config.json`、`plugins` 和日志目录；
 - `manager.json` 只描述管理器实例，不改官方 UnifierTSL 配置。
 

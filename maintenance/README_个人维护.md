@@ -62,7 +62,7 @@ powershell -NoProfile -ExecutionPolicy Bypass `
 ```
 
 管理器不会修改 UnifierTSL 官方配置，只是按 `manager.json` 启动/停止你配置的
-UnifierTSL 实例，并提供 TSM 风格的控制台、路径入口和运行概览。
+UnifierTSL 实例，并提供 TSM 风格的 3 控制台同屏、路径入口和运行概览。
 
 ## 同步官方上游
 

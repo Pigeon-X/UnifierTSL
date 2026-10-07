@@ -109,6 +109,7 @@ public sealed class ManagedServer : INotifyPropertyChanged
         : ResourceBrush("TextDim", Brushes.Gray);
 
     public event PropertyChangedEventHandler? PropertyChanged;
+    public event Action<ManagedServer>? TextChanged;
 
     public void Start()
     {
@@ -256,6 +257,8 @@ public sealed class ManagedServer : INotifyPropertyChanged
             {
                 paragraph.Inlines.Remove(paragraph.Inlines.FirstInline);
             }
+
+            TextChanged?.Invoke(this);
         }));
     }
 

@@ -39,12 +39,28 @@ $sample = [ordered]@{
   stopTimeoutSeconds = 6
   servers = @(
     [ordered]@{
-      name = 'UnifierTSL 实例'
-      rootPath = 'D:\Terraria\UnifierTSL'
+      name = 'S1 生存'
+      rootPath = 'D:\Terraria\UnifierTSL-S1'
       executable = 'UnifierTSL.exe'
       arguments = '-port 7777 -joinserver first'
       enabled = $true
-      remark = '把 rootPath 改成实际 UnifierTSL 发布目录'
+      remark = '第 1 个控制台实例'
+    },
+    [ordered]@{
+      name = 'S2 资源'
+      rootPath = 'D:\Terraria\UnifierTSL-S2'
+      executable = 'UnifierTSL.exe'
+      arguments = '-port 7778 -joinserver first'
+      enabled = $true
+      remark = '第 2 个控制台实例'
+    },
+    [ordered]@{
+      name = 'S3 建筑'
+      rootPath = 'D:\Terraria\UnifierTSL-S3'
+      executable = 'UnifierTSL.exe'
+      arguments = '-port 7779 -joinserver first'
+      enabled = $true
+      remark = '第 3 个控制台实例'
     }
   )
 } | ConvertTo-Json -Depth 5

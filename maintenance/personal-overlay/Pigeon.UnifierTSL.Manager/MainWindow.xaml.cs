@@ -7,6 +7,7 @@ using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
+using System.Windows.Shapes;
 using System.Windows.Threading;
 
 namespace PigeonUnifierTSL.Manager;
@@ -15,6 +16,7 @@ public partial class MainWindow : Window
 {
     private readonly ManagerConfig _config;
     private readonly DispatcherTimer _statusTimer;
+    private readonly ManagedServer?[] _consoleTargets = new ManagedServer?[3];
     private bool _closing;
 
     public ObservableCollection<ManagedServer> Servers { get; } = [];
@@ -33,6 +35,55 @@ public partial class MainWindow : Window
     }
 
     private ManagedServer? Current => ServerCombo.SelectedItem as ManagedServer;
+
+    private RichTextBox ConsoleTextBox(int index) => index switch
+    {
+        0 => Console1TextBox,
+        1 => Console2TextBox,
+        _ => Console3TextBox
+    };
+
+    private TextBlock ConsoleName(int index) => index switch
+    {
+        0 => Console1Name,
+        1 => Console2Name,
+        _ => Console3Name
+    };
+
+    private TextBlock ConsoleStatus(int index) => index switch
+    {
+        0 => Console1Status,
+        1 => Console2Status,
+        _ => Console3Status
+    };
+
+    private Ellipse ConsoleDot(int index) => index switch
+    {
+        0 => Console1Dot,
+        1 => Console2Dot,
+        _ => Console3Dot
+    };
+
+    private Button ConsoleStartButton(int index) => index switch
+    {
+        0 => Console1StartButton,
+        1 => Console2StartButton,
+        _ => Console3StartButton
+    };
+
+    private Button ConsoleStopButton(int index) => index switch
+    {
+        0 => Console1StopButton,
+        1 => Console2StopButton,
+        _ => Console3StopButton
+    };
+
+    private Button ConsoleConfigButton(int index) => index switch
+    {
+        0 => Console1ConfigButton,
+        1 => Console2ConfigButton,
+        _ => Console3ConfigButton
+    };
 
     private void Window_Loaded(object sender, RoutedEventArgs e)
     {
@@ -61,8 +112,8 @@ public partial class MainWindow : Window
         if (Servers.Count == 0)
         {
             ServerCombo.ItemsSource = Servers;
-            CliTextBox.Document = new FlowDocument(new Paragraph(new Run(
-                "manager.json 没有启用的服务器实例。\n请点击“管理 → 编辑启动配置 manager.json”添加 UnifierTSL 目录。")));
+            ServerCombo.SelectedIndex = -1;
+            AssignConsoleSlots();
             UpdateActionStates();
             return;
         }
@@ -75,6 +126,7 @@ public partial class MainWindow : Window
                 .index);
 
         ServerCombo.SelectedIndex = selectedIndex;
+        AssignConsoleSlots();
         ServerCombo_SelectionChanged(ServerCombo, null!);
     }
 
@@ -84,6 +136,8 @@ public partial class MainWindow : Window
         {
             server.NotifyOverviewChanged();
         }
+
+        RefreshConsoleHeaders();
     }
 
     private void ServerCombo_SelectionChanged(object sender, SelectionChangedEventArgs e)
@@ -95,10 +149,141 @@ public partial class MainWindow : Window
             return;
         }
 
-        CliTextBox.Document = current.Document;
         OverviewPanel.DataContext = current;
-        CliTextBox.ScrollToEnd();
         UpdateActionStates();
+    }
+
+    private void AssignConsoleSlots()
+    {
+        for (var i = 0; i < _consoleTargets.Length; i++)
+        {
+            if (_consoleTargets[i] != null)
+            {
+                _consoleTargets[i]!.TextChanged -= ConsoleTextChanged;
+            }
+
+            var server = i < Servers.Count ? Servers[i] : null;
+            _consoleTargets[i] = server;
+            if (server != null)
+            {
+                server.TextChanged += ConsoleTextChanged;
+            }
+
+            var textBox = ConsoleTextBox(i);
+            textBox.Document = server?.Document ?? CreateEmptyConsoleDocument(
+                $"实例 {i + 1} 未配置。\n请在 manager.json 的 servers 列表中添加第 {i + 1} 个 UnifierTSL 实例。");
+            textBox.ScrollToEnd();
+        }
+
+        RefreshConsoleHeaders();
+    }
+
+    private void RefreshConsoleHeaders()
+    {
+        for (var i = 0; i < _consoleTargets.Length; i++)
+        {
+            var server = _consoleTargets[i];
+            ConsoleName(i).Text = server?.Name ?? $"实例 {i + 1}";
+            ConsoleStatus(i).Text = server?.StatusText ?? "未配置";
+            ConsoleDot(i).Fill = server?.StatusBrush ?? ResourceBrush("TextDim");
+            ConsoleStartButton(i).IsEnabled = server != null && !server.IsRunning;
+            ConsoleStopButton(i).IsEnabled = server?.IsRunning == true;
+            ConsoleConfigButton(i).IsEnabled = server != null;
+        }
+    }
+
+    private void ConsoleTextChanged(ManagedServer server)
+    {
+        for (var i = 0; i < _consoleTargets.Length; i++)
+        {
+            if (ReferenceEquals(_consoleTargets[i], server))
+            {
+                ConsoleTextBox(i).ScrollToEnd();
+                break;
+            }
+        }
+    }
+
+    private static FlowDocument CreateEmptyConsoleDocument(string text)
+    {
+        var document = new FlowDocument(new Paragraph(new Run(text))
+        {
+            Foreground = Brushes.Gray
+        })
+        {
+            PagePadding = new Thickness(0),
+            FontFamily = new FontFamily("Consolas, Microsoft YaHei UI"),
+            FontSize = 12.5
+        };
+        return document;
+    }
+
+    private static Brush ResourceBrush(string key)
+    {
+        return Application.Current?.TryFindResource(key) as Brush ?? Brushes.Gray;
+    }
+
+    private ManagedServer? SlotTarget(object sender)
+    {
+        if (sender is not Button button ||
+            !int.TryParse(button.Tag?.ToString(), out var index) ||
+            index < 0 ||
+            index >= _consoleTargets.Length)
+        {
+            return null;
+        }
+
+        return _consoleTargets[index];
+    }
+
+    private void ConsolePanel_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+    {
+        if (sender is not Border border ||
+            !int.TryParse(border.Tag?.ToString(), out var index) ||
+            index < 0 ||
+            index >= _consoleTargets.Length ||
+            _consoleTargets[index] == null)
+        {
+            return;
+        }
+
+        ServerCombo.SelectedItem = _consoleTargets[index];
+        UpdateActionStates();
+    }
+
+    private async void SlotStartButton_Click(object sender, RoutedEventArgs e)
+    {
+        var target = SlotTarget(sender);
+        if (target == null)
+        {
+            return;
+        }
+
+        StartServer(target);
+        RefreshConsoleHeaders();
+        UpdateActionStates();
+    }
+
+    private async void SlotStopButton_Click(object sender, RoutedEventArgs e)
+    {
+        var target = SlotTarget(sender);
+        if (target == null || !target.IsRunning || !ConfirmStop(target.Name))
+        {
+            return;
+        }
+
+        await StopServerAsync(target);
+        RefreshConsoleHeaders();
+        UpdateActionStates();
+    }
+
+    private void SlotOpenConfigButton_Click(object sender, RoutedEventArgs e)
+    {
+        var target = SlotTarget(sender);
+        if (target != null)
+        {
+            OpenPath(target.ConfigPath);
+        }
     }
 
     private void WorkspacePage_Checked(object sender, RoutedEventArgs e)
@@ -315,9 +500,9 @@ public partial class MainWindow : Window
     private void About_Click(object sender, RoutedEventArgs e)
     {
         MessageBox.Show(
-            "Pigeon UnifierTSL Manager 1.0.0\n\n" +
-            "面向个人维护分支的 TSM 风格 UnifierTSL 多实例管理界面。\n" +
-            "支持启动/停止、控制台输出、启动参数、配置路径和插件目录管理。",
+            "Pigeon UnifierTSL Manager 1.1.0\n\n" +
+            "TSM 风格的单 EXE 多实例管理界面。\n" +
+            "支持 3 个控制台同屏、独立启停、配置入口和运行概览。",
             "关于",
             MessageBoxButton.OK,
             MessageBoxImage.Information);

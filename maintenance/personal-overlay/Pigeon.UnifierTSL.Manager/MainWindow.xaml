@@ -4,7 +4,7 @@
         x:Class="PigeonUnifierTSL.Manager.MainWindow"
         Name="Window"
         Title="Pigeon UnifierTSL Manager"
-        Height="760" Width="1160" MinHeight="620" MinWidth="960"
+        Height="780" Width="1480" MinHeight="650" MinWidth="1180"
         WindowStartupLocation="CenterScreen"
         Background="{DynamicResource AppBackdrop}"
         FontFamily="Microsoft YaHei UI"
@@ -335,17 +335,120 @@
                         <Border x:Name="ConsolePage" CornerRadius="12"
                                 Background="{DynamicResource ConsoleBg}"
                                 BorderBrush="{DynamicResource AccentBorder}"
-                                BorderThickness="1">
-                            <RichTextBox x:Name="CliTextBox"
-                                         Background="Transparent"
-                                         Foreground="{DynamicResource LogNormal}"
-                                         BorderThickness="0"
-                                         FontFamily="Consolas, Microsoft YaHei UI"
-                                         FontSize="12.5"
-                                         IsReadOnly="True"
-                                         Padding="9"
-                                         HorizontalScrollBarVisibility="Disabled"
-                                         VerticalScrollBarVisibility="Auto"/>
+                                BorderThickness="1"
+                                Padding="4">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+
+                                <Border Grid.Column="0" Margin="0,0,4,0" CornerRadius="9"
+                                        Background="#4D05050C" BorderBrush="{DynamicResource GlassBorder}"
+                                        BorderThickness="1" Tag="0" MouseLeftButtonDown="ConsolePanel_MouseLeftButtonDown">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="*"/>
+                                        </Grid.RowDefinitions>
+                                        <Grid Margin="8,6,8,4">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Ellipse x:Name="Console1Dot" Width="8" Height="8" Margin="0,0,7,0"
+                                                         VerticalAlignment="Center" Fill="{DynamicResource TextDim}"/>
+                                                <TextBlock x:Name="Console1Name" Text="实例 1"
+                                                           Foreground="{DynamicResource Text}" FontWeight="SemiBold"/>
+                                                <TextBlock x:Name="Console1Status" Text="未配置" Margin="8,0,0,0"
+                                                           Foreground="{DynamicResource TextDim}" FontSize="11"/>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                                <Button x:Name="Console1StartButton" Content="启动" Tag="0"
+                                                        Style="{StaticResource TopStartBtn}" Click="SlotStartButton_Click"/>
+                                                <Button x:Name="Console1StopButton" Content="停止" Tag="0"
+                                                        Style="{StaticResource TopStopBtn}" Click="SlotStopButton_Click"/>
+                                                <Button x:Name="Console1ConfigButton" Content="配置" Tag="0"
+                                                        Style="{StaticResource NeutralBtn}" Click="SlotOpenConfigButton_Click"/>
+                                            </StackPanel>
+                                        </Grid>
+                                        <RichTextBox x:Name="Console1TextBox" Grid.Row="1" Background="Transparent"
+                                                     Foreground="{DynamicResource LogNormal}" BorderThickness="0"
+                                                     FontFamily="Consolas, Microsoft YaHei UI" FontSize="12.5"
+                                                     IsReadOnly="True" Padding="9"
+                                                     HorizontalScrollBarVisibility="Disabled"
+                                                     VerticalScrollBarVisibility="Auto"/>
+                                    </Grid>
+                                </Border>
+
+                                <Border Grid.Column="1" Margin="2,0,2,0" CornerRadius="9"
+                                        Background="#4D05050C" BorderBrush="{DynamicResource GlassBorder}"
+                                        BorderThickness="1" Tag="1" MouseLeftButtonDown="ConsolePanel_MouseLeftButtonDown">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="*"/>
+                                        </Grid.RowDefinitions>
+                                        <Grid Margin="8,6,8,4">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Ellipse x:Name="Console2Dot" Width="8" Height="8" Margin="0,0,7,0"
+                                                         VerticalAlignment="Center" Fill="{DynamicResource TextDim}"/>
+                                                <TextBlock x:Name="Console2Name" Text="实例 2"
+                                                           Foreground="{DynamicResource Text}" FontWeight="SemiBold"/>
+                                                <TextBlock x:Name="Console2Status" Text="未配置" Margin="8,0,0,0"
+                                                           Foreground="{DynamicResource TextDim}" FontSize="11"/>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                                <Button x:Name="Console2StartButton" Content="启动" Tag="1"
+                                                        Style="{StaticResource TopStartBtn}" Click="SlotStartButton_Click"/>
+                                                <Button x:Name="Console2StopButton" Content="停止" Tag="1"
+                                                        Style="{StaticResource TopStopBtn}" Click="SlotStopButton_Click"/>
+                                                <Button x:Name="Console2ConfigButton" Content="配置" Tag="1"
+                                                        Style="{StaticResource NeutralBtn}" Click="SlotOpenConfigButton_Click"/>
+                                            </StackPanel>
+                                        </Grid>
+                                        <RichTextBox x:Name="Console2TextBox" Grid.Row="1" Background="Transparent"
+                                                     Foreground="{DynamicResource LogNormal}" BorderThickness="0"
+                                                     FontFamily="Consolas, Microsoft YaHei UI" FontSize="12.5"
+                                                     IsReadOnly="True" Padding="9"
+                                                     HorizontalScrollBarVisibility="Disabled"
+                                                     VerticalScrollBarVisibility="Auto"/>
+                                    </Grid>
+                                </Border>
+
+                                <Border Grid.Column="2" Margin="4,0,0,0" CornerRadius="9"
+                                        Background="#4D05050C" BorderBrush="{DynamicResource GlassBorder}"
+                                        BorderThickness="1" Tag="2" MouseLeftButtonDown="ConsolePanel_MouseLeftButtonDown">
+                                    <Grid>
+                                        <Grid.RowDefinitions>
+                                            <RowDefinition Height="Auto"/>
+                                            <RowDefinition Height="*"/>
+                                        </Grid.RowDefinitions>
+                                        <Grid Margin="8,6,8,4">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Ellipse x:Name="Console3Dot" Width="8" Height="8" Margin="0,0,7,0"
+                                                         VerticalAlignment="Center" Fill="{DynamicResource TextDim}"/>
+                                                <TextBlock x:Name="Console3Name" Text="实例 3"
+                                                           Foreground="{DynamicResource Text}" FontWeight="SemiBold"/>
+                                                <TextBlock x:Name="Console3Status" Text="未配置" Margin="8,0,0,0"
+                                                           Foreground="{DynamicResource TextDim}" FontSize="11"/>
+                                            </StackPanel>
+                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                                <Button x:Name="Console3StartButton" Content="启动" Tag="2"
+                                                        Style="{StaticResource TopStartBtn}" Click="SlotStartButton_Click"/>
+                                                <Button x:Name="Console3StopButton" Content="停止" Tag="2"
+                                                        Style="{StaticResource TopStopBtn}" Click="SlotStopButton_Click"/>
+                                                <Button x:Name="Console3ConfigButton" Content="配置" Tag="2"
+                                                        Style="{StaticResource NeutralBtn}" Click="SlotOpenConfigButton_Click"/>
+                                            </StackPanel>
+                                        </Grid>
+                                        <RichTextBox x:Name="Console3TextBox" Grid.Row="1" Background="Transparent"
+                                                     Foreground="{DynamicResource LogNormal}" BorderThickness="0"
+                                                     FontFamily="Consolas, Microsoft YaHei UI" FontSize="12.5"
+                                                     IsReadOnly="True" Padding="9"
+                                                     HorizontalScrollBarVisibility="Disabled"
+                                                     VerticalScrollBarVisibility="Auto"/>
+                                    </Grid>
+                                </Border>
+                            </Grid>
                         </Border>
 
                         <Border x:Name="OverviewPage" Visibility="Collapsed"
