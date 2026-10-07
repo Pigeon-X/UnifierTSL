@@ -1,0 +1,84 @@
+# UnifierTSL 个人维护说明
+
+本分支用于 Personal / Pigeon-X 的 UnifierTSL 维护。
+
+## 目录
+
+```text
+maintenance/
+├─ config-translation/
+│  ├─ TransferPatch.json
+│  └─ Apply-SourceLocalization.ps1
+├─ personal-overlay/
+│  └─ README.md
+└─ tools/
+   └─ Build-Personal.ps1
+```
+
+## 汉化边界
+
+`config-translation` 负责 TShock 配置键和 REST Token 字段的中文映射。
+
+- TShockSettings：146 个配置键
+- REST TokenData：Username / UserGroupName
+- SSC 配置保持英文，不翻译
+
+## 应用汉化
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass `
+  -File .\maintenance\config-translation\Apply-SourceLocalization.ps1
+```
+
+脚本是幂等的，重复执行不会重复添加属性。
+
+## 个人编译
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass `
+  -File .\maintenance\tools\Build-Personal.ps1 -Configuration Release
+```
+
+编译脚本会先应用汉化，再编译：
+
+```text
+src/UnifierTSL/UnifierTSL.csproj
+```
+
+## 同步官方上游
+
+本地仓库：
+
+```text
+origin   Pigeon-X/UnifierTSL
+upstream CedaryCat/UnifierTSL
+```
+
+检查更新：
+
+```powershell
+cd "C:\Users\59934\Saved Games\流光核心源码\_git"
+.\UnifierTSL-同步上游.ps1 -Mode Check
+```
+
+更新个人 fork 的 main：
+
+```powershell
+.\UnifierTSL-同步上游.ps1 -Mode UpdateMain
+```
+
+合并到个人维护分支：
+
+```powershell
+.\UnifierTSL-同步上游.ps1 -Mode MergePersonal
+```
+
+## 个人插件兼容
+
+插件兼容和私人构建配置放在：
+
+```text
+maintenance/personal-overlay/
+```
+
+不要把私人插件、数据库、世界文件、日志或 Token 提交到 upstream。
