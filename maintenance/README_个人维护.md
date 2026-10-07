@@ -10,9 +10,11 @@ maintenance/
 │  ├─ TransferPatch.json
 │  └─ Apply-SourceLocalization.ps1
 ├─ personal-overlay/
+│  ├─ Pigeon.UnifierTSL.Manager/
 │  └─ README.md
 └─ tools/
-   └─ Build-Personal.ps1
+   ├─ Build-Personal.ps1
+   └─ Publish-Manager.ps1
 ```
 
 ## 汉化边界
@@ -44,6 +46,23 @@ powershell -NoProfile -ExecutionPolicy Bypass `
 ```text
 src/UnifierTSL/UnifierTSL.csproj
 ```
+
+同时编译 TSM 风格个人管理器：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass `
+  -File .\maintenance\tools\Build-Personal.ps1 -Configuration Release -BuildManager
+```
+
+发布自包含管理器：
+
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass `
+  -File .\maintenance\tools\Publish-Manager.ps1 -Configuration Release
+```
+
+管理器不会修改 UnifierTSL 官方配置，只是按 `manager.json` 启动/停止你配置的
+UnifierTSL 实例，并提供 TSM 风格的控制台、路径入口和运行概览。
 
 ## 同步官方上游
 

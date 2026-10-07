@@ -1,0 +1,446 @@
+<Window
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="PigeonUnifierTSL.Manager.MainWindow"
+        Name="Window"
+        Title="Pigeon UnifierTSL Manager"
+        Height="760" Width="1160" MinHeight="620" MinWidth="960"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource AppBackdrop}"
+        FontFamily="Microsoft YaHei UI"
+        TextOptions.TextFormattingMode="Display"
+        UseLayoutRounding="True"
+        SnapsToDevicePixels="True"
+        Loaded="Window_Loaded"
+        Closing="Window_Closing">
+
+    <Window.Resources>
+        <LinearGradientBrush x:Key="AppBackdrop" StartPoint="0,0" EndPoint="1,1">
+            <GradientStop Color="{DynamicResource Backdrop1}" Offset="0"/>
+            <GradientStop Color="{DynamicResource Backdrop2}" Offset="0.55"/>
+            <GradientStop Color="{DynamicResource Backdrop3}" Offset="1"/>
+        </LinearGradientBrush>
+
+        <Style TargetType="Button" x:Key="BaseBtn">
+            <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Height" Value="28"/>
+            <Setter Property="MinWidth" Value="70"/>
+            <Setter Property="Padding" Value="8,0"/>
+            <Setter Property="Margin" Value="4,0,0,0"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="b" Background="{TemplateBinding Background}" CornerRadius="11"
+                                BorderBrush="{DynamicResource GlassBorder}" BorderThickness="1">
+                            <Grid>
+                                <Border CornerRadius="11" VerticalAlignment="Top" Height="1" Margin="2,1,2,0"
+                                        Background="{DynamicResource GlassHi}"/>
+                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="b" Property="Opacity" Value="0.88"/>
+                                <Setter TargetName="b" Property="BorderBrush" Value="{DynamicResource Accent2}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="b" Property="Opacity" Value="0.70"/>
+                            </Trigger>
+                            <Trigger Property="IsEnabled" Value="False">
+                                <Setter TargetName="b" Property="Opacity" Value="0.30"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="Button" BasedOn="{StaticResource BaseBtn}" x:Key="StartBtn">
+            <Setter Property="Background" Value="{DynamicResource Ok}"/>
+            <Setter Property="Foreground" Value="{DynamicResource BtnText}"/>
+        </Style>
+        <Style TargetType="Button" BasedOn="{StaticResource BaseBtn}" x:Key="StopBtn">
+            <Setter Property="Background" Value="{DynamicResource Err}"/>
+            <Setter Property="Foreground" Value="{DynamicResource BtnText}"/>
+        </Style>
+        <Style TargetType="Button" BasedOn="{StaticResource BaseBtn}" x:Key="AccentBtn">
+            <Setter Property="Background" Value="{DynamicResource Accent}"/>
+            <Setter Property="Foreground" Value="{DynamicResource AccentText}"/>
+        </Style>
+        <Style TargetType="Button" BasedOn="{StaticResource BaseBtn}" x:Key="NeutralBtn">
+            <Setter Property="Background" Value="{DynamicResource GlassPanelHi}"/>
+            <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+        </Style>
+
+        <Style TargetType="Button" BasedOn="{StaticResource BaseBtn}" x:Key="TopStartBtn">
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="MinWidth" Value="48"/>
+            <Setter Property="FontSize" Value="10.5"/>
+            <Setter Property="Padding" Value="6,0"/>
+            <Setter Property="Margin" Value="3,0,0,0"/>
+            <Setter Property="Background" Value="{DynamicResource Ok}"/>
+            <Setter Property="Foreground" Value="{DynamicResource BtnText}"/>
+        </Style>
+        <Style TargetType="Button" BasedOn="{StaticResource BaseBtn}" x:Key="TopStopBtn">
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="MinWidth" Value="48"/>
+            <Setter Property="FontSize" Value="10.5"/>
+            <Setter Property="Padding" Value="6,0"/>
+            <Setter Property="Margin" Value="3,0,0,0"/>
+            <Setter Property="Background" Value="{DynamicResource Err}"/>
+            <Setter Property="Foreground" Value="{DynamicResource BtnText}"/>
+        </Style>
+
+        <Style TargetType="RadioButton" x:Key="WorkspaceTabButton">
+            <Setter Property="Foreground" Value="{DynamicResource TextDim}"/>
+            <Setter Property="FontSize" Value="12"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="Padding" Value="12,4"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="TabBorder" Background="Transparent" CornerRadius="8"
+                                BorderBrush="Transparent" BorderThickness="1"
+                                Padding="{TemplateBinding Padding}" Margin="0,0,5,0">
+                            <ContentPresenter ContentSource="Content"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter Property="Foreground" Value="{DynamicResource AccentText}"/>
+                                <Setter TargetName="TabBorder" Property="Background" Value="{DynamicResource Accent}"/>
+                                <Setter TargetName="TabBorder" Property="BorderBrush" Value="{DynamicResource Accent2}"/>
+                            </Trigger>
+                            <MultiTrigger>
+                                <MultiTrigger.Conditions>
+                                    <Condition Property="IsMouseOver" Value="True"/>
+                                    <Condition Property="IsChecked" Value="False"/>
+                                </MultiTrigger.Conditions>
+                                <Setter TargetName="TabBorder" Property="Background" Value="{DynamicResource GlassPanelHi}"/>
+                                <Setter TargetName="TabBorder" Property="BorderBrush" Value="{DynamicResource Accent2}"/>
+                            </MultiTrigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style TargetType="MenuItem">
+            <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="Padding" Value="7,2"/>
+            <Setter Property="FontSize" Value="11.5"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="MenuItem">
+                        <Grid>
+                            <Border x:Name="ItemBorder" Background="{TemplateBinding Background}" CornerRadius="7"
+                                    Padding="{TemplateBinding Padding}">
+                                <Grid>
+                                    <ContentPresenter ContentSource="Header" RecognizesAccessKey="True"
+                                                      VerticalAlignment="Center"/>
+                                    <TextBlock x:Name="Chevron" Text="▾" Foreground="{DynamicResource TextDim}"
+                                               HorizontalAlignment="Right" Margin="10,0,0,0" Visibility="Collapsed"/>
+                                </Grid>
+                            </Border>
+                            <Popup x:Name="PART_Popup" AllowsTransparency="True" Placement="Bottom"
+                                   PlacementTarget="{Binding RelativeSource={RelativeSource TemplatedParent}}"
+                                   IsOpen="{TemplateBinding IsSubmenuOpen}" PopupAnimation="Fade">
+                                <Border Background="{DynamicResource ConsoleBg}" BorderBrush="{DynamicResource AccentBorder}"
+                                        BorderThickness="1" CornerRadius="10" Padding="4" MinWidth="180">
+                                    <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle"/>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="Role" Value="TopLevelHeader">
+                                <Setter TargetName="Chevron" Property="Visibility" Value="Visible"/>
+                            </Trigger>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource GlassPanelHi}"/>
+                            </Trigger>
+                            <Trigger Property="IsSubmenuOpen" Value="True">
+                                <Setter TargetName="ItemBorder" Property="Background" Value="{DynamicResource GlassPanelHi}"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="ManagerCombo" TargetType="ComboBox">
+            <Setter Property="Foreground" Value="{DynamicResource Text}"/>
+            <Setter Property="FontSize" Value="12.5"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ComboBox">
+                        <Grid>
+                            <ToggleButton Focusable="False" ClickMode="Press"
+                                          IsChecked="{Binding IsDropDownOpen, Mode=TwoWay, RelativeSource={RelativeSource TemplatedParent}}">
+                                <ToggleButton.Template>
+                                    <ControlTemplate TargetType="ToggleButton">
+                                        <Border x:Name="cb" Background="{DynamicResource GlassPanel}" CornerRadius="11"
+                                                BorderBrush="{DynamicResource GlassBorder}" BorderThickness="1">
+                                            <Path Data="M 0 0 L 4 4 L 8 0" Stroke="{DynamicResource Accent2}" StrokeThickness="1.8"
+                                                  HorizontalAlignment="Right" VerticalAlignment="Center" Margin="0,0,16,0"/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="cb" Property="BorderBrush" Value="{DynamicResource Accent2}"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </ToggleButton.Template>
+                            </ToggleButton>
+                            <StackPanel IsHitTestVisible="False" Orientation="Horizontal"
+                                        Margin="18,0,30,0" VerticalAlignment="Center">
+                                <Ellipse Width="8" Height="8" Margin="0,0,7,0"
+                                         VerticalAlignment="Center"
+                                         Fill="{Binding SelectedItem.StatusBrush, RelativeSource={RelativeSource TemplatedParent}}"/>
+                                <TextBlock Text="{Binding SelectedItem.Name, RelativeSource={RelativeSource TemplatedParent}, FallbackValue=请选择实例}"
+                                           Foreground="{DynamicResource Text}"/>
+                            </StackPanel>
+                            <Popup x:Name="PART_Popup" AllowsTransparency="True" Placement="Bottom" Focusable="False"
+                                   IsOpen="{TemplateBinding IsDropDownOpen}" PopupAnimation="Slide">
+                                <Border Background="{DynamicResource ConsoleBg}" CornerRadius="12" Margin="0,4,0,0"
+                                        BorderBrush="{DynamicResource Accent2}" BorderThickness="1"
+                                        MinWidth="{TemplateBinding ActualWidth}">
+                                    <ScrollViewer MaxHeight="320">
+                                        <ItemsPresenter/>
+                                    </ScrollViewer>
+                                </Border>
+                            </Popup>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid>
+        <Ellipse Width="620" Height="620" HorizontalAlignment="Left" VerticalAlignment="Top"
+                 Margin="-220,-260,0,0" IsHitTestVisible="False">
+            <Ellipse.Fill>
+                <RadialGradientBrush>
+                    <GradientStop Color="{DynamicResource Blob1}" Offset="0"/>
+                    <GradientStop Color="#00000000" Offset="1"/>
+                </RadialGradientBrush>
+            </Ellipse.Fill>
+        </Ellipse>
+        <Ellipse Width="720" Height="720" HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                 Margin="0,0,-260,-300" IsHitTestVisible="False">
+            <Ellipse.Fill>
+                <RadialGradientBrush>
+                    <GradientStop Color="{DynamicResource Blob2}" Offset="0"/>
+                    <GradientStop Color="#00000000" Offset="1"/>
+                </RadialGradientBrush>
+            </Ellipse.Fill>
+        </Ellipse>
+
+        <Border Margin="8" CornerRadius="16" Background="{DynamicResource GlassBg}"
+                BorderBrush="{DynamicResource GlassBorder}" BorderThickness="1">
+            <Grid>
+                <Border Height="1" VerticalAlignment="Top" Margin="16,1,16,0"
+                        Background="{DynamicResource GlassHi}"/>
+
+                <Grid Margin="12,8,12,8">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                        <RowDefinition Height="Auto"/>
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <ComboBox x:Name="ServerCombo" Grid.Column="0" Width="310" Height="28"
+                                  Style="{StaticResource ManagerCombo}"
+                                  ItemsSource="{Binding Servers, ElementName=Window}"
+                                  SelectionChanged="ServerCombo_SelectionChanged"
+                                  ToolTip="选择要管理的 UnifierTSL 实例/世界组">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Ellipse Width="8" Height="8" Margin="2,0,7,0"
+                                                 VerticalAlignment="Center"
+                                                 Fill="{Binding StatusBrush}"/>
+                                        <TextBlock Text="{Binding Name}"
+                                                   Foreground="{DynamicResource Text}"
+                                                   FontSize="12.5"
+                                                   VerticalAlignment="Center"/>
+                                        <TextBlock Text="{Binding StatusText}"
+                                                   Margin="8,0,0,0"
+                                                   Foreground="{Binding StatusBrush}"
+                                                   FontSize="11"
+                                                   VerticalAlignment="Center"/>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+
+                        <StackPanel Grid.Column="1" Orientation="Horizontal"
+                                    HorizontalAlignment="Left" VerticalAlignment="Center"
+                                    Margin="16,0,0,0">
+                            <RadioButton x:Name="ConsolePageButton" Content="控制台"
+                                         GroupName="WorkspacePage"
+                                         Style="{StaticResource WorkspaceTabButton}"
+                                         IsChecked="True"
+                                         Checked="WorkspacePage_Checked"/>
+                            <RadioButton x:Name="OverviewPageButton" Content="运行概览"
+                                         GroupName="WorkspacePage"
+                                         Style="{StaticResource WorkspaceTabButton}"
+                                         Checked="WorkspacePage_Checked"/>
+                        </StackPanel>
+
+                        <StackPanel Grid.Column="3" Orientation="Horizontal"
+                                    HorizontalAlignment="Right" VerticalAlignment="Center">
+                            <Menu Background="Transparent" Foreground="{DynamicResource Text}"
+                                  FontSize="11.5" Padding="0" VerticalAlignment="Center">
+                                <MenuItem Header="管理">
+                                    <MenuItem Header="打开服务器目录" Click="OpenRoot_Click"/>
+                                    <MenuItem Header="编辑启动配置 manager.json" Click="OpenManagerConfig_Click"/>
+                                    <MenuItem Header="编辑 UnifierTSL config.json" Click="OpenConfig_Click"/>
+                                    <MenuItem Header="打开插件目录" Click="OpenPlugins_Click"/>
+                                    <MenuItem Header="打开日志目录" Click="OpenLogs_Click"/>
+                                    <Separator/>
+                                    <MenuItem Header="刷新服务器列表" Click="Refresh_Click"/>
+                                </MenuItem>
+                                <MenuItem Header="工具">
+                                    <MenuItem Header="复制启动命令" Click="CopyLaunchCommand_Click"/>
+                                    <MenuItem Header="关于 Pigeon UnifierTSL Manager" Click="About_Click"/>
+                                </MenuItem>
+                            </Menu>
+                            <Button x:Name="StartButton" Content="启动"
+                                    Style="{StaticResource TopStartBtn}" Click="StartButton_Click"/>
+                            <Button x:Name="KillButton" Content="停止"
+                                    Style="{StaticResource TopStopBtn}" Click="KillButton_Click"/>
+                            <Button x:Name="StartAllButton" Content="全启"
+                                    Style="{StaticResource TopStartBtn}" Click="StartAllButton_Click"/>
+                            <Button x:Name="StopAllButton" Content="全停"
+                                    Style="{StaticResource TopStopBtn}" Click="StopAllButton_Click"/>
+                        </StackPanel>
+                    </Grid>
+
+                    <Grid Grid.Row="1" Margin="0,4,0,0">
+                        <Border x:Name="ConsolePage" CornerRadius="12"
+                                Background="{DynamicResource ConsoleBg}"
+                                BorderBrush="{DynamicResource AccentBorder}"
+                                BorderThickness="1">
+                            <RichTextBox x:Name="CliTextBox"
+                                         Background="Transparent"
+                                         Foreground="{DynamicResource LogNormal}"
+                                         BorderThickness="0"
+                                         FontFamily="Consolas, Microsoft YaHei UI"
+                                         FontSize="12.5"
+                                         IsReadOnly="True"
+                                         Padding="9"
+                                         HorizontalScrollBarVisibility="Disabled"
+                                         VerticalScrollBarVisibility="Auto"/>
+                        </Border>
+
+                        <Border x:Name="OverviewPage" Visibility="Collapsed"
+                                CornerRadius="12" Background="{DynamicResource ConsoleBg}"
+                                BorderBrush="{DynamicResource AccentBorder}"
+                                BorderThickness="1">
+                            <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="18">
+                                <Grid x:Name="OverviewPanel">
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="180"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                        <RowDefinition Height="Auto"/>
+                                    </Grid.RowDefinitions>
+
+                                    <TextBlock Grid.Row="0" Grid.Column="0" Text="实例名称"
+                                               Foreground="{DynamicResource TextDim}" Margin="0,0,12,10"/>
+                                    <TextBlock Grid.Row="0" Grid.Column="1" Text="{Binding Name}"
+                                               Foreground="{DynamicResource Text}" Margin="0,0,0,10"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="0" Text="运行状态"
+                                               Foreground="{DynamicResource TextDim}" Margin="0,0,12,10"/>
+                                    <TextBlock Grid.Row="1" Grid.Column="1" Text="{Binding StatusText}"
+                                               Foreground="{Binding StatusBrush}" Margin="0,0,0,10"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="0" Text="进程 PID"
+                                               Foreground="{DynamicResource TextDim}" Margin="0,0,12,10"/>
+                                    <TextBlock Grid.Row="2" Grid.Column="1" Text="{Binding ProcessIdText}"
+                                               Foreground="{DynamicResource Text}" Margin="0,0,0,10"/>
+                                    <TextBlock Grid.Row="3" Grid.Column="0" Text="监听端口"
+                                               Foreground="{DynamicResource TextDim}" Margin="0,0,12,10"/>
+                                    <TextBlock Grid.Row="3" Grid.Column="1" Text="{Binding PortText}"
+                                               Foreground="{DynamicResource Text}" Margin="0,0,0,10"/>
+                                    <TextBlock Grid.Row="4" Grid.Column="0" Text="运行时长"
+                                               Foreground="{DynamicResource TextDim}" Margin="0,0,12,10"/>
+                                    <TextBlock Grid.Row="4" Grid.Column="1" Text="{Binding UptimeText}"
+                                               Foreground="{DynamicResource Text}" Margin="0,0,0,10"/>
+                                    <TextBlock Grid.Row="5" Grid.Column="0" Text="服务器目录"
+                                               Foreground="{DynamicResource TextDim}" Margin="0,0,12,10"/>
+                                    <TextBlock Grid.Row="5" Grid.Column="1" Text="{Binding RootPath}"
+                                               Foreground="{DynamicResource Text}" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                                    <TextBlock Grid.Row="6" Grid.Column="0" Text="启动命令"
+                                               Foreground="{DynamicResource TextDim}" Margin="0,0,12,10"/>
+                                    <TextBlock Grid.Row="6" Grid.Column="1" Text="{Binding ExecutablePath}"
+                                               Foreground="{DynamicResource Text}" TextWrapping="Wrap" Margin="0,0,0,10"/>
+                                    <TextBlock Grid.Row="7" Grid.Column="0" Text="备注"
+                                               Foreground="{DynamicResource TextDim}" Margin="0,0,12,0"/>
+                                    <TextBlock Grid.Row="7" Grid.Column="1" Text="{Binding Remark}"
+                                               Foreground="{DynamicResource Text}" TextWrapping="Wrap"/>
+                                </Grid>
+                            </ScrollViewer>
+                        </Border>
+                    </Grid>
+
+                    <Grid x:Name="CommandBar" Grid.Row="2" Margin="0,4,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Background="{DynamicResource InputBg}" CornerRadius="11">
+                            <Grid>
+                                <TextBlock x:Name="Placeholder"
+                                           Text="输入 UnifierTSL 控制台指令，例如 stop / help"
+                                           Foreground="{DynamicResource TextDim}"
+                                           FontSize="12.5"
+                                           VerticalAlignment="Center"
+                                           Margin="10,0"
+                                           IsHitTestVisible="False"/>
+                                <TextBox x:Name="TextBox"
+                                         Background="Transparent"
+                                         Foreground="{DynamicResource Text}"
+                                         CaretBrush="{DynamicResource Accent2}"
+                                         BorderThickness="0"
+                                         FontSize="12.5"
+                                         Height="28"
+                                         VerticalContentAlignment="Center"
+                                         Padding="9,0"
+                                         TextChanged="TextBox_TextChanged"
+                                         PreviewKeyDown="TextBox_PreviewKeyDown"/>
+                            </Grid>
+                        </Border>
+                        <Button Grid.Column="1" Content="发送" Style="{StaticResource AccentBtn}"
+                                Click="SendCurrentButton_Click"/>
+                        <Button Grid.Column="2" Content="全部发送" Style="{StaticResource NeutralBtn}"
+                                Click="SendAllButton_Click"/>
+                    </Grid>
+                </Grid>
+            </Grid>
+        </Border>
+    </Grid>
+</Window>
