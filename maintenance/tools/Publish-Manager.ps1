@@ -66,5 +66,9 @@ $sample = [ordered]@{
 } | ConvertTo-Json -Depth 5
 
 Set-Content -LiteralPath (Join-Path $output 'manager.example.json') -Value $sample -Encoding UTF8
+$managerConfigPath = Join-Path $output 'manager.json'
+if (-not (Test-Path -LiteralPath $managerConfigPath)) {
+  Set-Content -LiteralPath $managerConfigPath -Value $sample -Encoding UTF8
+}
 Get-ChildItem -LiteralPath $output | Select-Object Name,Length
 Write-Host '管理器发布完成。' -ForegroundColor Green
