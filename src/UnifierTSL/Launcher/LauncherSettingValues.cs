@@ -98,7 +98,9 @@ namespace UnifierTSL.Launcher
 
         public static bool TryResolveSize(string? value, out int size) {
             string text = value?.Trim() ?? "";
-            if (int.TryParse(text, out size) && size >= 1 && size <= 3) {
+            // ★ size >= 1000 视为【自定义世界长度】（直接当宽度用）。
+            //   用于生成超长地图，再按 TEdit 方式切成若干等宽世界拼接。
+            if (int.TryParse(text, out size) && size >= 1 && (size <= 3 || size >= 1000)) {
                 return true;
             }
 

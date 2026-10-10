@@ -37,12 +37,41 @@ namespace UnifierTSL.Servers
                             break;
                         case 2:
                             server.Main.maxTilesX = 6400;
-                            server.Main.maxTilesY = 1800;
+                            server.Main.maxTilesY = 1500;
                             break;
                         case 3:
-                        default:
                             server.Main.maxTilesX = 8400;
                             server.Main.maxTilesY = 2400;
+                            break;
+                        default:
+                            // 自定义【世界长度】：size >= 1000 时直接作为地图宽度。
+                            // 用于生成"超长地图"，再按 TEdit 方式切成若干等宽世界拼接。
+                            // 高度保持原版大世界一致（作者建议只拓展长度，不拓展高度）。
+                            // 自定义长度：宽度取 worldSize，高度用 1800。
+                            // 1800 是原版"中世界"高度，也是 150 的整数倍（客户端区块高 150，必须整除）。
+                            // 降低高度是为了换长度：内存 = 宽 × 高，12000x2400 已验证可用，
+                            // 12800x2400 会 OOM，12800x1800 只有 2304 万图格（更省）。
+                            if (worldSize >= 1000) {
+                                // 自定义【世界长度】：宽度取 worldSize，高度按宽度自动推导。
+                                // 内存 = 宽 x 高，越长的地图必须越矮，否则生成/保存会 OOM（实测 12800x2400 会挂）。
+                                // 高度必须是 150 的整数倍（客户端区块高 150）。
+                                //   4200~12800  -> 1500（10 区块）
+                                //   12801~17000 -> 1200（8 区块）
+                                //   > 17000     -> 900 （6 区块）
+                                server.Main.maxTilesX = worldSize;
+                                // 高度优先给足（地形分层按 maxTilesY 等比缩放，太矮会让固定尺寸的结构只生成一半）。
+                                // 内存 = 宽 x 高：实测 12000x2400(2880万) 可用、12800x2400(3072万) OOM，
+                                // 所以阈值取在 12000 附近。
+                                // 显式高度优先（切片世界必须声明成和文件完全一致的尺寸，否则客户端地图基准会错位）
+                                int explicitH = 0;
+                                try { explicitH = int.Parse(Environment.GetEnvironmentVariable("UTSL_CUSTOM_HEIGHT") ?? "0"); } catch { }
+                                server.Main.maxTilesY = explicitH > 0
+                                    ? explicitH
+                                    : (worldSize <= 13000 ? 2400 : (worldSize <= 16000 ? 1800 : 1200));
+                            }                            else {
+                                server.Main.maxTilesX = 8400;
+                                server.Main.maxTilesY = 2400;
+                            }
                             break;
                     }
                     server.Main.autoGen = true;
