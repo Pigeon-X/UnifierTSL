@@ -1,4 +1,4 @@
-using System.Collections.Concurrent;
+﻿using System.Collections.Concurrent;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks.Sources;
 using UnifierTSL.Events.Core;
@@ -27,6 +27,13 @@ namespace UnifierTSL.Servers
         public abstract ValueTask SwitchAsync(CancellationToken cancellationToken = default);
 
         public abstract void Dispose();
+
+        /// <summary>
+        /// Idle keep-alive: let an EMPTY world (no routed players -> Main.Update is never called)
+        /// still execute callbacks posted via <see cref="Post"/>/<see cref="InvokeAsync(Action, CancellationToken)"/>
+        /// on its own update thread. Called by ServerPerformance.Initializer.DedServLoop when idle.
+        /// </summary>
+        public abstract void DrainIdleQueue();
     }
 
     internal sealed class UpdateThreadServerDispatcher : ServerDispatcher
@@ -204,6 +211,12 @@ namespace UnifierTSL.Servers
             DrainQueue();
         }
 
+        public override void DrainIdleQueue() {
+            if (Volatile.Read(ref disposed) != 0) {
+                return;
+            }
+            DrainQueue();
+        }
         private void DrainQueue() {
             while (queue.TryDequeue(out Action? action)) {
                 try {
@@ -402,3 +415,4 @@ namespace UnifierTSL.Servers
         }
     }
 }
+

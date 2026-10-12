@@ -7,7 +7,7 @@ using UnifierTSL.Surface.Prompting;
 
 namespace UnifierTSL.Surface.Hosting.Server;
 
-internal sealed class HeadlessServerSurfaceConsole : ServerSurfaceConsole
+public sealed class HeadlessServerSurfaceConsole : ServerSurfaceConsole
 {
     private sealed class NullSurfaceSession : ISurfaceSession
     {
@@ -72,27 +72,27 @@ internal sealed class HeadlessServerSurfaceConsole : ServerSurfaceConsole
 
     protected override ISurfaceSession Session => session;
 
+    // ★ 2026-10-12 修复：原来是【抛异常】。
+    //   但 Terraria 的 DedServ 会另起一条线程循环调用 MainSystemContext.ReadLineInput()
+    //   → root.Console.ReadLine()；抛异常会让该线程带着【未处理异常】退出，实测直接【终止整个进程】✗。
+    //   改成"返回 null / 默认值"：调用方的循环会自然结束、线程干净退出，不会崩。
     public override string? ReadLine() {
-        throw CreateInputNotSupportedException();
+        return null;
     }
 
     public override ConsoleKeyInfo ReadKey() {
-        throw CreateInputNotSupportedException();
+        return default;
     }
 
     public override ConsoleKeyInfo ReadKey(bool intercept) {
-        throw CreateInputNotSupportedException();
+        return default;
     }
 
     public override int Read() {
-        throw CreateInputNotSupportedException();
+        return -1;
     }
 
     protected override string? ReadLineCore(PromptSurfaceSpec prompt) {
-        throw CreateInputNotSupportedException();
-    }
-
-    private static NotSupportedException CreateInputNotSupportedException() {
-        return new("Headless server surface consoles do not support interactive input.");
+        return null;
     }
 }
