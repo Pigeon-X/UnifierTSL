@@ -39,6 +39,7 @@ namespace UnifierTSL.Servers
         }
 
         internal static void Initialize() {
+            StaticLeakTargeted.LogSelfCheck();
             On.Terraria.NetplaySystemContext.StartServer += StartServer;
             On.Terraria.Main.YouCanSleepNow += CloseServer;
             On.UnifiedServerProcess.RootContext.ctor += OnCreateInstance;

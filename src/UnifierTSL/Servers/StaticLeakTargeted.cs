@@ -41,18 +41,23 @@ namespace UnifierTSL.Servers
 
         private static int _selfChecked;
 
+        /// <summary>校验摘除所依赖的内部字段是否仍然存在；进程内只输出一次。</summary>
+        public static void LogSelfCheck()
+        {
+            if (Interlocked.Exchange(ref _selfChecked, 1) != 0) { return; }
+            try
+            {
+                string bad = SelfCheck();
+                Console.WriteLine(bad.Length == 0
+                    ? "[StaticLeakTargeted] self-check ok"
+                    : "[StaticLeakTargeted] self-check failed: " + bad + " (leak fix may be ineffective)");
+            }
+            catch (Exception ex) { Console.WriteLine("[StaticLeakTargeted] self-check error: " + ex.Message); }
+        }
+
         public static int Detach(ServerContext target)
         {
-            if (Interlocked.Exchange(ref _selfChecked, 1) == 0)
-            {
-                try
-                {
-                    string bad = SelfCheck();
-                    if (bad.Length == 0) { Console.WriteLine("[StaticLeakTargeted] self-check OK (all internal fields found)"); }
-                    else { Console.WriteLine("[StaticLeakTargeted] ★WARNING★ self-check FAILED: " + bad + "  —— 内存泄漏修复可能已失效，请检查 Terraria/OTAPI 版本"); }
-                }
-                catch (Exception ex) { Console.WriteLine("[StaticLeakTargeted] self-check EX: " + ex.Message); }
-            }
+            LogSelfCheck();
 
             int n = 0;
             try { n += DetachStateSnapshot(target); } catch (Exception ex) { Diag.Add("snap EX:" + ex.GetType().Name); }
