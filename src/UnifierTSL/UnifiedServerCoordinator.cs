@@ -869,10 +869,14 @@ namespace UnifierTSL
             if (!from.Dispatcher.CheckAccess()) {
                 throw new InvalidOperationException("Player transfer must be initiated on the source server update thread.");
             }
-            if (from.Main.maxTilesX != to.Main.maxTilesX || from.Main.maxTilesY != to.Main.maxTilesY) {
+            // 客户端把 Main.tile / Main.Map / 区块计数都按最大世界尺寸分配一次、之后不重建，
+            // 因此转移到更小的世界是安全的；只有目标超出该尺寸才会越界。
+            const int ClientArrayTilesX = 8401;   // (int)(134400f) / 16 + 1
+            const int ClientArrayTilesY = 2401;   // (int)( 38400f) / 16 + 1
+            if (to.Main.maxTilesX > ClientArrayTilesX || to.Main.maxTilesY > ClientArrayTilesY) {
                 Logger.Warning(
                     category: "PlayerTransfer",
-                    message: GetParticularString("{0} is player name, {1} is source server name, {2} is destination server name", $"Cannot transfer player '{from.Main.player[plr].name}' from {from.Name} to {to.Name}: seamless transfer requires equal world dimensions."));
+                    message: GetParticularString("{0} is player name, {1} is source server name, {2} is destination server name", $"Cannot transfer player '{from.Main.player[plr].name}' from {from.Name} to {to.Name}: target world exceeds the client's tile array ({ClientArrayTilesX}x{ClientArrayTilesY})."));
                 return;
             }
 

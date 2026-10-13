@@ -40,9 +40,73 @@ namespace UnifierTSL.Servers
 
         internal static void Initialize() {
             StaticLeakTargeted.LogSelfCheck();
+            ApplySavePathOverride();
             On.Terraria.NetplaySystemContext.StartServer += StartServer;
             On.Terraria.Main.YouCanSleepNow += CloseServer;
             On.UnifiedServerProcess.RootContext.ctor += OnCreateInstance;
+        }
+
+        /// <summary>
+        /// 默认存档目录（Documents\My Games\Terraria）在某些环境下不可写，而 Terraria 在创建
+        /// 世界元数据时会写 favorites.json，写失败会直接终止进程。所以启动时先探测一次：
+        /// 不可写就整体换到程序目录下的 Saves（并把已有 .wld 复制过去）。
+        /// 也可用环境变量 UTSL_SAVE_PATH 强制指定。
+        /// </summary>
+        private static void ApplySavePathOverride()
+        {
+            try
+            {
+                System.Reflection.FieldInfo? F(string n) => typeof(Terraria.Main).GetField(n,
+                    System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+
+                string def = Terraria.Main.SavePath;
+                string? forced = Environment.GetEnvironmentVariable("UTSL_SAVE_PATH");
+                string? target = !string.IsNullOrWhiteSpace(forced) ? forced : null;
+
+                if (target is null)
+                {
+                    try
+                    {
+                        Directory.CreateDirectory(def);
+                        string probe = Path.Combine(def, "_write_probe.tmp");
+                        File.WriteAllText(probe, "x");
+                        File.Delete(probe);
+                        return;                       // 默认可写 -> 什么都不做
+                    }
+                    catch
+                    {
+                        target = Path.Combine(AppContext.BaseDirectory, "Saves");
+                    }
+                }
+
+                string oldWorlds = Terraria.Main.WorldPath;
+                Directory.CreateDirectory(target);
+                string newWorlds = Path.Combine(target, "Worlds");
+                Directory.CreateDirectory(newWorlds);
+                F("SavePath")?.SetValue(null, target);
+                F("WorldPath")?.SetValue(null, newWorlds);
+                F("PlayerPath")?.SetValue(null, Path.Combine(target, "Players"));
+
+                int copied = 0;
+                try
+                {
+                    if (Directory.Exists(oldWorlds))
+                    {
+                        foreach (string f in Directory.GetFiles(oldWorlds, "*.wld"))
+                        {
+                            string dst = Path.Combine(newWorlds, Path.GetFileName(f));
+                            if (!File.Exists(dst)) { File.Copy(f, dst); copied++; }
+                        }
+                    }
+                }
+                catch { }
+
+                System.Console.WriteLine($"[SavePath] '{def}' 不可写 -> 改用 '{target}'（复制 {copied} 个世界文件）");
+            }
+            catch (Exception ex)
+            {
+                System.Console.WriteLine("[SavePath] override failed: " + ex.Message);
+            }
         }
 
         private static void CloseServer(On.Terraria.Main.orig_YouCanSleepNow orig, Main self, RootContext root) {
