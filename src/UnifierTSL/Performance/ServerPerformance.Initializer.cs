@@ -21,7 +21,6 @@ namespace UnifierTSL.Performance
                 IL.Terraria.Main.mfwh_DedServ += ILDetour_Main_DedServ;
 
                 On.Terraria.Testing.DetailedFPSSystemContext.StartNextFrame += Detour_DetailedFPSSystemContext_StartNextFrame;
-                // ★ 世界池：不需要控制台输入的世界，直接不进入输入循环
                 On.Terraria.MainSystemContext.startDedInputCallBack += Detour_StartDedInputCallBack;
                 IL.OTAPI.HooksSystemContext.NetMessageSystemContext.InvokeSendBytes += ILDetour_NetMessageSystemContext_InvokeSendBytes;
 
@@ -46,7 +45,6 @@ namespace UnifierTSL.Performance
                 cursor.Emit(OpCodes.Call, il.Import(typeof(Initializer).GetMethod(nameof(DedServLoop), BF_NonPub_Static) ?? throw new InvalidOperationException()));
             }
             /// <summary>
-            /// ★ 2026-10-12：拦掉"不需要控制台输入"的世界的输入线程循环。
             /// 不拦的后果（实测）：该线程会永久阻塞或无限空转，既钉住 context（无法回收），
             /// 又在空转时吃满一个 CPU 核心。
             /// </summary>
@@ -109,7 +107,6 @@ namespace UnifierTSL.Performance
 
                         bool anyConnections = server.hasRoutedConnections;
 
-                        // ★ 2026-10-12（世界池 / PocketWorld 需要）：空闲世界保活 —— 只 drain 委托队列，不跑游戏逻辑。
                         //   没有这一步：无玩家被路由的世界既不 tick（下面 anyConnections 分支不执行），
                         //   也不发 Game.PreUpdate，于是 Dispatcher.Post/InvokeAsync 的委托永不执行、
                         //   ServerContext.SwitchWorld（要求世界线程）永远没机会跑 ✗

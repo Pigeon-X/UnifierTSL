@@ -104,6 +104,9 @@ public abstract partial class ServerSurfaceConsole
         Session.PublishSurfaceHostOperation(SurfaceHostOperations.Clear());
     }
 
+    // 不支持交互的控制台（如无头模式）应返回 false，世界据此决定是否启动输入线程
+    public virtual bool CanReadInput => true;
+
     public override string? ReadLine() {
         return ConsoleReadScope.ReadLine();
     }

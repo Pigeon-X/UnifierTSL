@@ -6,9 +6,7 @@ namespace UnifierTSL.Servers
     public partial class ServerContext
     {
         /// <summary>
-        /// ★ 世界热换：把**已经存在**的这个 ServerContext 换成另一个世界的数据（不重启进程、不新建 context）。
         ///
-        /// 为什么需要它（P0 实测结论，详见 UTSL 开发历史整理 §5.3.6）：
         ///   \`ServerContext\` 一旦创建，会被 Terraria 的静态注册表（\`ConditionalDialogue._registry\`、
         ///   \`Testing.StateSnapshot\`）钉住，**GC 永远回收不掉** →
         ///   随身世界（PocketWorld）不能"每个玩家建一个世界"，只能**固定若干实例轮流复用**，
@@ -72,12 +70,10 @@ namespace UnifierTSL.Servers
         /// <summary>
         /// 确保磁盘上存在一个【同尺寸的空白世界文件】，用于世界池（PocketWorld）。
         ///
-        /// 为什么需要它：`GenerateWorld` 生成一个 4200x2400 的原版世界要很久（实测玩家侧会"启动超时"），
         /// 而随身世界实验阶段只需要一个**尺寸正确、地形全空**的世界。
         /// 做法：设好 maxTilesX/Y → `ResetWorldSize()` 按新尺寸重建 tile 数组 → `clearWorld()` 清空 →
         ///       `SaveWorld()` 写盘。之后用 `GenerateOrLoadExisting`/`FromBytes` 加载就是**纯读文件**，秒级完成。
         ///
-        /// ★ 必须在本 context 的更新线程上调用（与 SwitchWorld 同理）。
         /// </summary>
         /// <param name="worldName">世界名（决定落盘路径）。</param>
         /// <param name="tileW">宽度（像素格数）。</param>
@@ -123,10 +119,8 @@ namespace UnifierTSL.Servers
         /// <summary>
         /// 在**空白世界**里造一个最小的"能站人的出生平台"。
         ///
-        /// 为什么需要：全空气世界玩家进去会一直往下掉（没法站着看东西），实验阶段很不方便。
         /// 这里只放一层实心方块 + 出生点，不做地形生成（依然秒级）。
         ///
-        /// ★ 必须在本 context 的更新线程上调用；也必须在 EnsureBlankWorld/SwitchWorld 之后调用
         ///   （此时 Main.tile 已经是新世界尺寸的数组）。
         /// </summary>
         /// <param name="halfWidth">平台半宽（方块数）。</param>

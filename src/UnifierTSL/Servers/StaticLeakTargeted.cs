@@ -61,6 +61,10 @@ namespace UnifierTSL.Servers
             try { n += DetachArmorSetBonuses(target); } catch (Exception ex) { Diag.Add("armor EX:" + ex.GetType().Name); }
             try { n += DetachMidiPlayerBinding(target); } catch (Exception ex) { Diag.Add("midi EX:" + ex.GetType().Name); }
             System.Threading.Interlocked.Add(ref TotalRemoved, n);
+            // 已加载的世界必然有可摘项；为 0 说明匹配逻辑没生效（通常是内部字段改名）
+            if (n == 0 && CurrentGameplayComponentCount() > 0) {
+                Console.WriteLine("[StaticLeakTargeted] warning: detached 0 entries while gameplay components exist; internal field names may have changed");
+            }
             return n;
         }
 
@@ -98,7 +102,6 @@ namespace UnifierTSL.Servers
                     }
                 }
             }
-            // ★ 关键补充：整批摘掉"本世界加载时追加的组件"。
             //   原因：其中有些组件（如 TilesComponent）持有本世界的【图格数据】，
             //   但图格数据本身不引用 RootContext → 上面的"是否到达 target"判定抓不到它们，
             //   导致"对象壳被回收、54MB 图格却留在全局静态表里"（实测 +54.3MB/世界，线性不降）。
@@ -136,7 +139,6 @@ namespace UnifierTSL.Servers
 
                 if (v is string || v.GetType().IsValueType) { continue; }
 
-                // ★★ 关键补充：ListComponent<T>.  _list / ArrayComponent. _array 这两类【没有委托字段】，
                 //    上面的判定永远看不见它们，于是"持有整个世界图格数据"的组件永远不被摘除
                 //    （实测残留 +54.3MB/世界、每世界 22 个组件摘不掉、baseline 每轮 +22）。
                 //    判定依据：本次调用的目标是【一个正在消亡的世界】，而只有世界级数据才会达到这个量级
@@ -145,7 +147,6 @@ namespace UnifierTSL.Servers
                 if (v is Array bigArr && bigArr.Length >= WorldScaleElements) { return true; }
                 if (v is System.Collections.ICollection bigCol && bigCol.Count >= WorldScaleElements) { return true; }
 
-                // ★★ 精确归属（差分统计给出的根因，2026-10-12）：
                 //    StateSnapshot.Gameplay._components 里的 ArrayComponent（Name = "Main.player"/"Main.chest"/
                 //    "Main.dust"/"Main.tile"/…）通过 _array 直接钉住【已死世界的 Main 数组】，
                 //    于是整个世界对象图（Item/Player/Chest/…）留下 = 54.3MB/世界。
@@ -229,7 +230,6 @@ namespace UnifierTSL.Servers
             return false;
         }
 
-        // ---------------- ★ 限深限量的引用判定 ----------------
 
         /// <summary>
         /// 委托（经其 Target 的少量字段，最多 MaxDepth 层、MaxNodes 个对象）是否引用 target。
@@ -296,7 +296,6 @@ namespace UnifierTSL.Servers
 
         private static Type? ResolveType(string fullName)
         {
-            // ★ dump 实证：运行时程序集是 OTAPI（不是 Terraria）→ 优先试 OTAPI
             Type? t = Type.GetType(fullName + ", OTAPI", throwOnError: false);
             if (t is not null) { return t; }
             t = Type.GetType(fullName + ", Terraria", throwOnError: false);
@@ -337,7 +336,6 @@ namespace UnifierTSL.Servers
         }
 
         /// <summary>
-        /// ★ 启动自检：确认所有依赖的【内部字段】存在。
         /// 这些是 Terraria/OTAPI 的私有成员，升级后可能改名/消失；
         /// 一旦失效，摘除会静默变成 0 条 → 泄漏悄悄回来。
         /// 所以在启动时检查一次，把"静默失效"变成"明确告警"。
@@ -379,13 +377,11 @@ namespace UnifierTSL.Servers
                 if (!typeof(Delegate).IsAssignableFrom(f.FieldType)) { continue; }
                 removed += FilterDelegateField(f, AppDomain.CurrentDomain, target);
             }
-            // ★ gcroot 注解是 "static variable" → 该委托在【静态字段】里，也扫一遍
             foreach (FieldInfo f in StaticFields(AppDomain.CurrentDomain.GetType()))
             {
                 if (!typeof(Delegate).IsAssignableFrom(f.FieldType)) { continue; }
                 removed += FilterDelegateField(f, null, target);
             }
-            // ★★ dump 实证（子代理定位）：真正钉住世界的是
             //    System.AppContext.UnhandledException (static UnhandledExceptionEventHandler, token 0x04000396)
             //    多播委托里每个世界一个 CrashWatcher 闭包 → 必须扫 AppContext！
             //    （gcroot 注解的 "s_defaultBaseDirectory" 是 ClrMD 错位标注，该字段值为 null）
@@ -432,7 +428,6 @@ namespace UnifierTSL.Servers
         }
 
         /// <summary>
-        /// ★ 定向两层直查（替代通用 BFS，避免 MaxNodes 截断导致的漏判）。
         /// 实测链路：委托.Target(闭包) -> 字段 -> SystemContext -> 字段 -> ServerContext，
         /// 即"最多两层字段直查"就够；不做 BFS、没有节点上限，因此【不会漏判】。
         /// </summary>
@@ -525,7 +520,6 @@ namespace UnifierTSL.Servers
         }
 
         /// <summary>
-        /// ★ 精确归属：某个数组/集合对象是否【就是本世界 Main 的某个字段值】（引用相等）。
         /// 用于识别 StateSnapshot 的 ArrayComponent（Main.player/chest/dust/tile/…），
         /// 它们不引用 ServerContext，只能靠"是不是本世界 Main 的数组"来归属。
         /// </summary>

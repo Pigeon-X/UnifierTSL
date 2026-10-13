@@ -72,10 +72,10 @@ public sealed class HeadlessServerSurfaceConsole : ServerSurfaceConsole
 
     protected override ISurfaceSession Session => session;
 
-    // ★ 2026-10-12 修复：原来是【抛异常】。
-    //   但 Terraria 的 DedServ 会另起一条线程循环调用 MainSystemContext.ReadLineInput()
-    //   → root.Console.ReadLine()；抛异常会让该线程带着【未处理异常】退出，实测直接【终止整个进程】✗。
-    //   改成"返回 null / 默认值"：调用方的循环会自然结束、线程干净退出，不会崩。
+    public override bool CanReadInput => false;
+
+    // 返回 null 而不是抛异常：调用方（Terraria 的 DedServ 输入循环）会在下一轮检查退出条件，
+    // 抛异常则会让该线程带未处理异常终止进程（见 commit 记录）
     public override string? ReadLine() {
         return null;
     }
