@@ -869,14 +869,13 @@ namespace UnifierTSL
             if (!from.Dispatcher.CheckAccess()) {
                 throw new InvalidOperationException("Player transfer must be initiated on the source server update thread.");
             }
-            // 客户端把 Main.tile / Main.Map / 区块计数都按最大世界尺寸分配一次、之后不重建，
-            // 因此转移到更小的世界是安全的；只有目标超出该尺寸才会越界。
-            const int ClientArrayTilesX = 8401;   // (int)(134400f) / 16 + 1
-            const int ClientArrayTilesY = 2401;   // (int)( 38400f) / 16 + 1
-            if (to.Main.maxTilesX > ClientArrayTilesX || to.Main.maxTilesY > ClientArrayTilesY) {
+            // 必须同尺寸。跨尺寸转移【不会越界】（客户端 tile 数组按最大世界分配），但会造成
+            // 客户端边界处读到新世界之外的旧图格 —— 表现为空气墙与显示错乱；
+            // 1.4.5.8 加入这道检查正是为了它。想要跨尺寸，只能先做客户端侧的图格重建。
+            if (from.Main.maxTilesX != to.Main.maxTilesX || from.Main.maxTilesY != to.Main.maxTilesY) {
                 Logger.Warning(
                     category: "PlayerTransfer",
-                    message: GetParticularString("{0} is player name, {1} is source server name, {2} is destination server name", $"Cannot transfer player '{from.Main.player[plr].name}' from {from.Name} to {to.Name}: target world exceeds the client's tile array ({ClientArrayTilesX}x{ClientArrayTilesY})."));
+                    message: GetParticularString("{0} is player name, {1} is source server name, {2} is destination server name", $"Cannot transfer player '{from.Main.player[plr].name}' from {from.Name} to {to.Name}: seamless transfer requires equal world dimensions."));
                 return;
             }
 
