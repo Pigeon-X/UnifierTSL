@@ -62,7 +62,19 @@ namespace UnifierTSL.Servers
             orig(self, name);
         }
 
-        protected virtual ServerSurfaceConsole CreateSurfaceConsole() => new CliServerSurfaceConsole(this);
+        /// <summary>世界控制台模式：PerWorld=每个世界一个窗口（默认）；Headless=不开窗口。</summary>
+        public enum ConsoleMode { PerWorld, Headless }
+
+        /// <summary>新建世界的默认控制台模式。可用环境变量 UTSL_CONSOLE_MODE=headless 覆盖 ——
+        /// 小内存机器多开副本世界时必须，否则每个世界都会额外拉起一个 ConsoleClient 进程。</summary>
+        public static ConsoleMode DefaultConsoleMode { get; set; } =
+            string.Equals(Environment.GetEnvironmentVariable("UTSL_CONSOLE_MODE"), "headless", StringComparison.OrdinalIgnoreCase)
+                ? ConsoleMode.Headless : ConsoleMode.PerWorld;
+
+        protected virtual ServerSurfaceConsole CreateSurfaceConsole()
+            => DefaultConsoleMode == ConsoleMode.Headless
+                ? new UnifierTSL.Surface.Hosting.Server.HeadlessServerSurfaceConsole(this)
+                : new CliServerSurfaceConsole(this);
 
         /// <summary>是否需要为该世界启动控制台输入线程（由控制台是否支持交互输入决定）。</summary>
         public virtual bool SupportsConsoleInput => Console.CanReadInput;
