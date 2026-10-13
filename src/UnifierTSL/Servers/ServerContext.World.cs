@@ -117,6 +117,27 @@ namespace UnifierTSL.Servers
         }
 
         /// <summary>
+        /// 把【当前世界】清空成空白（不做尺寸变更 —— 尺寸一旦不同就要重建 tile 数组，
+        /// 那正是 EnsureBlankWorld 在本项目里翻车的地方，见 ClearCurrentWorld 的调用方）。
+        /// </summary>
+        public void ClearCurrentWorld()
+        {
+            if (!Dispatcher.CheckAccess())
+            {
+                throw new InvalidOperationException("ClearCurrentWorld must run on this server's update thread.");
+            }
+
+            WorldGen.clearWorld();
+
+            if (!string.IsNullOrEmpty(Main.worldPathName))
+            {
+                WorldFile.SaveWorld(resetTime: false, useTemps: false);
+            }
+
+            Log.Info(category: "World", message: $"World cleared: {Main.worldName} ({Main.maxTilesX}x{Main.maxTilesY})");
+        }
+
+        /// <summary>
         /// 在**空白世界**里造一个最小的"能站人的出生平台"。
         ///
         /// 这里只放一层实心方块 + 出生点，不做地形生成（依然秒级）。
