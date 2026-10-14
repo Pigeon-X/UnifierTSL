@@ -312,6 +312,20 @@ namespace UnifierTSL
             }
         }
         public static void RemoveServer(ServerContext server) {
+            // 先把仍绑定在这个世界上的连接解绑。否则它们的 socket 还连着、GetClientCurrentlyServer 仍返回
+            // 这个已被移除的世界，但该世界的线程已死、Dispatcher 已释放 —— 连接会永久"假死"
+            //（命令与聊天全部失效），并且由于 from.Dispatcher.CheckAccess() 恒为 false 而无法再被转移出去。
+            for (int i = 0; i < globalClients.Length; i++) {
+                if (!ReferenceEquals(GetClientCurrentlyServer(i), server)) {
+                    continue;
+                }
+                SetClientCurrentlyServer(i, null);
+                if (globalClients[i] is RemoteClient client) {
+                    client.PendingTermination = true;
+                    client.PendingTerminationApproved = true;
+                }
+                players[i] = new();
+            }
             if (ImmutableInterlocked.Update(ref servers, arr => arr.Remove(server))) {
                 UnifierApi.EventHub.Server.RemoveServer.Invoke(new(server));
                 UnifierApi.EventHub.Server.ServerListChanged.Invoke(new());
@@ -627,17 +641,25 @@ namespace UnifierTSL
                     if (server is not null) {
                         if (client.PendingTermination) {
                             if (client.PendingTerminationApproved) {
+                                // 先取出真正的玩家对象与其 active：client.Reset 会把 Main.player[i] 换成 new Player()，
+                                // 之后读到的永远是 false —— 原对象永不下线、PlayerDisconnect 也永不触发。
+                                Player boundPlayer = server.Main.player[i];
+                                bool wasActive = boundPlayer is not null && boundPlayer.active;
+
                                 client.Reset(server);
                                 server.NetMessage.SyncDisconnectedPlayer(i);
 
-                                bool active = server.Main.player[i].active;
-                                server.Main.player[i].active = false;
-                                if (active) {
+                                if (wasActive) {
                                     server.Player.Hooks.PlayerDisconnect(i);
                                 }
+                                if (boundPlayer is not null) {
+                                    boundPlayer.active = false;
+                                }
+                                server.Main.player[i].active = false;
 
                                 client.Socket = null;
-                                // SetClientCurrentlyServer(i, main);
+                                // 解绑路由：否则该索引被新连接复用时，会指向这个已空掉的世界。
+                                SetClientCurrentlyServer(i, null);
                             }
                             continue;
                         }
