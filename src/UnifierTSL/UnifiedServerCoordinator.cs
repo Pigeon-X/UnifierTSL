@@ -319,10 +319,15 @@ namespace UnifierTSL
                 if (!ReferenceEquals(GetClientCurrentlyServer(i), server)) {
                     continue;
                 }
-                SetClientCurrentlyServer(i, null);
                 if (globalClients[i] is RemoteClient client) {
-                    client.PendingTermination = true;
-                    client.PendingTerminationApproved = true;
+                    // 与 UpdateConnectedClients 里的 client.Update(server) 使用同一把锁，避免并发改状态
+                    lock (client) {
+                        SetClientCurrentlyServer(i, null);
+                        client.PendingTermination = true;
+                        client.PendingTerminationApproved = true;
+                    }
+                } else {
+                    SetClientCurrentlyServer(i, null);
                 }
                 players[i] = new();
             }
@@ -941,6 +946,9 @@ namespace UnifierTSL
                             category: "PlayerTransfer",
                             message: GetParticularString("{0} is player name, {1} is source server name, {2} is destination server name", $"Failed to transfer player '{client.Name}' from {from.Name} to {to.Name}."),
                             ex: ex);
+                        // 回滚路由绑定：让后续断线清理作用在源世界（与目标世界对象已交换的事实相比，
+                        // 指向一个仍然活着的世界总是更安全；kick 后客户端重连会走完整的干净路径）。
+                        try { SetClientCurrentlyServer(plr, from); } catch { }
                         sender.Kick(NetworkText.FromLiteral("Server transfer failed."));
                         return;
                     }
