@@ -92,6 +92,11 @@ namespace TShockAPI
             else {
                 if (UserId == byte.MaxValue) {
                     CurrentLogger.Info(message, file: file, member: member, line: line);
+                    // ★ 补丁（本项目）：世界控制台分支同时回传给 RestPlayer，
+                    //   这样"按世界执行 + 通过 REST 取输出"就能兼得（只在显式传了 RestPlayer 时生效，不影响原有行为）
+RestPlayer?.SendMessage(message, color);
+                    // ★ 同时写一份到静态 logger → 落 logs\*.log（管理器的控制台流看得到世界控制台的输出）
+                    Log.Info(message, file: file, member: member, line: line);
                 }
                 else {
                     TShock.Players[UserId].SendMessage(message, color);
@@ -114,6 +119,11 @@ namespace TShockAPI
             else {
                 if (UserId == byte.MaxValue) {
                     CurrentLogger.Info(message, file: file, member: member, line: line);
+                    // ★ 补丁（本项目）：世界控制台分支同时回传给 RestPlayer，
+                    //   这样"按世界执行 + 通过 REST 取输出"就能兼得（只在显式传了 RestPlayer 时生效，不影响原有行为）
+RestPlayer?.SendMessage(message, new Color(r, g, b));
+                    // ★ 同时写一份到静态 logger → 落 logs\*.log（管理器的控制台流看得到世界控制台的输出）
+                    Log.Info(message, file: file, member: member, line: line);
                 }
                 else {
                     TShock.Players[UserId].SendMessage(message, new Color(r, g, b));
@@ -136,6 +146,11 @@ namespace TShockAPI
             else {
                 if (UserId == byte.MaxValue) {
                     CurrentLogger.Error(message, file: file, member: member, line: line);
+                    // ★ 补丁（本项目）：世界控制台分支同时回传给 RestPlayer，
+                    //   这样"按世界执行 + 通过 REST 取输出"就能兼得（只在显式传了 RestPlayer 时生效，不影响原有行为）
+RestPlayer?.SendErrorMessage(message);
+                    // ★ 同时写一份到静态 logger → 落 logs\*.log（管理器的控制台流看得到世界控制台的输出）
+                    Log.Error(message, file: file, member: member, line: line);
                 }
                 else {
                     TShock.Players[UserId].SendErrorMessage(message);
@@ -159,6 +174,11 @@ namespace TShockAPI
             else {
                 if (UserId == byte.MaxValue) {
                     CurrentLogger.Info(message, file: file, member: member, line: line);
+                    // ★ 补丁（本项目）：世界控制台分支同时回传给 RestPlayer，
+                    //   这样"按世界执行 + 通过 REST 取输出"就能兼得（只在显式传了 RestPlayer 时生效，不影响原有行为）
+RestPlayer?.SendInfoMessage(message);
+                    // ★ 同时写一份到静态 logger → 落 logs\*.log（管理器的控制台流看得到世界控制台的输出）
+                    Log.Info(message, file: file, member: member, line: line);
                 }
                 else {
                     TShock.Players[UserId].SendInfoMessage(message);
@@ -182,6 +202,11 @@ namespace TShockAPI
             else {
                 if (UserId == byte.MaxValue) {
                     CurrentLogger.Warning(message, file: file, member: member, line: line);
+                    // ★ 补丁（本项目）：世界控制台分支同时回传给 RestPlayer，
+                    //   这样"按世界执行 + 通过 REST 取输出"就能兼得（只在显式传了 RestPlayer 时生效，不影响原有行为）
+RestPlayer?.SendWarningMessage(message);
+                    // ★ 同时写一份到静态 logger → 落 logs\*.log（管理器的控制台流看得到世界控制台的输出）
+                    Log.Warning(message, file: file, member: member, line: line);
                 }
                 else {
                     TShock.Players[UserId].SendWarningMessage(message);
@@ -204,6 +229,11 @@ namespace TShockAPI
             else {
                 if (UserId == byte.MaxValue) {
                     CurrentLogger.Success(message, file: file, member: member, line: line);
+                    // ★ 补丁（本项目）：世界控制台分支同时回传给 RestPlayer，
+                    //   这样"按世界执行 + 通过 REST 取输出"就能兼得（只在显式传了 RestPlayer 时生效，不影响原有行为）
+RestPlayer?.SendSuccessMessage(message);
+                    // ★ 同时写一份到静态 logger → 落 logs\*.log（管理器的控制台流看得到世界控制台的输出）
+                    Log.Success(message, file: file, member: member, line: line);
                 }
                 else {
                     TShock.Players[UserId].SendSuccessMessage(message);
