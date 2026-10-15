@@ -1,4 +1,4 @@
-using Terraria.Localization;
+﻿using Terraria.Localization;
 using UnifierTSL.Surface.Adapter.Cli.Terminal;
 using UnifierTSL.Surface.Hosting;
 using UnifierTSL.PluginHost;
@@ -69,6 +69,13 @@ Current Process ID: {Environment.ProcessId}"));
                          : GetParticularString("{0} is server password", $"Server is running with password: '{UnifiedServerCoordinator.ServerPassword}'")));
 
             UnifierApi.EventHub.Coordinator.Started.Invoke(default);
+
+            // 单窗口模式：起完世界就把"可切换控制台面板"画一次
+            if (Servers.ServerContext.DefaultConsoleMode == Servers.ServerContext.ConsoleMode.Unified) {
+                Surface.Hosting.Unified.UnifiedConsoleHub.Instance.RenderPanel(
+                    GetString("单窗口控制台已启用：输入世界编号 1/2/3 或 w next / w prev / w <名字> 切换"));
+            }
+
             UnifierApi.EventHub.Chat.KeepReadingInput();
         }
     }

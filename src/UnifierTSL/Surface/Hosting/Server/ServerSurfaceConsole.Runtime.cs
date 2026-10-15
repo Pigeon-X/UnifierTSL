@@ -1,4 +1,4 @@
-using UnifierTSL.Surface.Activities;
+﻿using UnifierTSL.Surface.Activities;
 using System.Text;
 using UnifierTSL.Surface;
 using UnifierTSL.Surface.Prompting;
@@ -15,15 +15,28 @@ public abstract partial class ServerSurfaceConsole
     private ServerConsoleReadScope? consoleReadScope;
     private StatusProjectionRuntime? statusRuntime;
     private bool runtimeInitialized;
-    private ConsoleColor cachedBackgroundColor = System.Console.BackgroundColor;
-    private ConsoleColor cachedForegroundColor = System.Console.ForegroundColor;
-    private Encoding cachedInputEncoding = System.Console.InputEncoding;
-    private Encoding cachedOutputEncoding = System.Console.OutputEncoding;
-    private int cachedWindowHeight = System.Console.WindowHeight;
-    private int cachedWindowLeft = System.Console.WindowLeft;
-    private int cachedWindowTop = System.Console.WindowTop;
-    private int cachedWindowWidth = System.Console.WindowWidth;
+    private ConsoleColor cachedBackgroundColor = SafeConsoleMetric(static () => System.Console.BackgroundColor, ConsoleColor.Black);
+    private ConsoleColor cachedForegroundColor = SafeConsoleMetric(static () => System.Console.ForegroundColor, ConsoleColor.Gray);
+    private Encoding cachedInputEncoding = SafeConsoleMetric(static () => System.Console.InputEncoding, Encoding.UTF8);
+    private Encoding cachedOutputEncoding = SafeConsoleMetric(static () => System.Console.OutputEncoding, Encoding.UTF8);
+    private int cachedWindowHeight = SafeConsoleMetric(static () => System.Console.WindowHeight, 40);
+    private int cachedWindowLeft = SafeConsoleMetric(static () => System.Console.WindowLeft, 0);
+    private int cachedWindowTop = SafeConsoleMetric(static () => System.Console.WindowTop, 0);
+    private int cachedWindowWidth = SafeConsoleMetric(static () => System.Console.WindowWidth, 120);
     private string cachedTitle = string.Empty;
+
+    /// <summary>
+    /// 无控制台/句柄无效（隐藏窗口、重定向、服务方式启动）时 Console.* 会抛 IOException。
+    /// 这些字段只是"缓存的控制台外观"，取不到就用回退值 —— 不再让世界构造直接崩进程。
+    /// </summary>
+    private static T SafeConsoleMetric<T>(Func<T> getter, T fallback) {
+        try {
+            return getter();
+        }
+        catch {
+            return fallback;
+        }
+    }
 
     public virtual bool HasActiveSurfaceActivity => StatusRuntime.HasActiveActivity;
 
@@ -84,11 +97,11 @@ public abstract partial class ServerSurfaceConsole
         set => UpdateSurfaceHostOperation(ref cachedTitle, value, static title => SurfaceHostOperations.SetTitle(title));
     }
 
-    public void WriteAnsi(string? value) {
+    public virtual void WriteAnsi(string? value) {
         PublishAnsi(StreamPayloadKind.AppendText, value);
     }
 
-    public void WriteLineAnsi(string? value) {
+    public virtual void WriteLineAnsi(string? value) {
         PublishAnsi(StreamPayloadKind.AppendLine, value);
     }
 

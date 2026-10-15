@@ -1,4 +1,4 @@
-using Microsoft.Xna.Framework;
+﻿using Microsoft.Xna.Framework;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using MonoMod.Cil;
@@ -11,6 +11,8 @@ using Terraria.UI.Chat;
 using TrProtocol.NetPackets.Modules;
 using UnifiedServerProcess;
 using UnifierTSL.Surface.Hosting;
+using UnifierTSL.Surface.Hosting;
+using UnifierTSL.Surface.Hosting.Unified;
 using UnifierTSL.Surface.Prompting;
 using UnifierTSL.Terminal;
 using UnifierTSL.Events.Core;
@@ -62,13 +64,35 @@ namespace UnifierTSL.Events.Handlers
                 return;
             }
 
+            // 重定向/无控制台时（服务方式启动、stdin 已被关闭），ReadLine 会立刻返回空串；
+            // 这时必须限速，否则读取循环会在 EOF 上 100% CPU 空转。
+            // 注意：不能 return —— KeepReadingInput 是 Main 的最后一步，返回会让整个服务器进程退出。
+
             while (true) {
-                string input = Console.ReadLine(
-                    PromptRegistry.CreateDefaultCommandPromptSpec(server: null),
-                    trim: true);
+                // 单窗口模式：提示符跟着"当前世界"走，输入按当前世界路由；
+                // 非单窗口模式：保持原行为（协调器级提示符 + 协调器级分发）。
+                bool unified = UnifiedConsoleHub.IsEnabled;
+                bool interactive = LauncherSurfaceConsole.IsInteractive;
+
+                // 无交互终端（服务/重定向）时不打印提示符，避免日志被提示符刷满
+                var promptSpec = unified
+                    ? (interactive
+                        ? PromptSurfaceSpec.CreatePlain(UnifiedConsoleHub.Instance.CurrentPrompt)
+                        : PromptSurfaceSpec.CreatePlain(string.Empty))
+                    : PromptRegistry.CreateDefaultCommandPromptSpec(server: null);
+
+                string input = Console.ReadLine(promptSpec, trim: true);
                 if (string.IsNullOrWhiteSpace(input)) {
+                    if (!LauncherSurfaceConsole.IsInteractive) {
+                        Thread.Sleep(200);
+                    }
                     continue;
                 }
+
+                if (unified && UnifiedConsoleHub.Instance.TryConsumeLauncherInput(input)) {
+                    continue;
+                }
+
                 try {
                     MessageEvent.Invoke(new MessageEvent(new(null, byte.MaxValue), input, input), out _);
                 }

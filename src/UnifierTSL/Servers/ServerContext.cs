@@ -1,4 +1,4 @@
-using Terraria;
+﻿using Terraria;
 using UnifiedServerProcess;
 using UnifierTSL.Surface.Adapter.Cli.Server;
 using UnifierTSL.Surface.Hosting.Server;
@@ -126,19 +126,39 @@ namespace UnifierTSL.Servers
             orig(self, name);
         }
 
-        /// <summary>世界控制台模式：PerWorld=每个世界一个窗口（默认）；Headless=不开窗口。</summary>
-        public enum ConsoleMode { PerWorld, Headless }
+        /// <summary>
+        /// 世界控制台模式：
+        ///   Unified  = 单窗口（默认）：所有世界共用一个启动器窗口，窗口内用 1/2/3 或 w 系列切换；
+        ///   PerWorld = 每个世界一个独立窗口（每个世界还会额外拉一个 ConsoleClient 进程）；
+        ///   Headless = 完全无窗口（连汇总输出也不进启动器窗口）。
+        /// </summary>
+        public enum ConsoleMode { Unified, PerWorld, Headless }
 
-        /// <summary>新建世界的默认控制台模式。可用环境变量 UTSL_CONSOLE_MODE=headless 覆盖 ——
-        /// 小内存机器多开副本世界时必须，否则每个世界都会额外拉起一个 ConsoleClient 进程。</summary>
-        public static ConsoleMode DefaultConsoleMode { get; set; } =
-            string.Equals(Environment.GetEnvironmentVariable("UTSL_CONSOLE_MODE"), "headless", StringComparison.OrdinalIgnoreCase)
-                ? ConsoleMode.Headless : ConsoleMode.PerWorld;
+        /// <summary>
+        /// 新建世界的默认控制台模式。环境变量 UTSL_CONSOLE_MODE 可覆盖：unified / perworld / headless。
+        /// 默认 Unified —— 启动多世界不再弹出 N 个窗口，也不再为每个世界拉起 ConsoleClient 子进程。
+        /// </summary>
+        public static ConsoleMode DefaultConsoleMode { get; set; } = ParseConsoleMode(Environment.GetEnvironmentVariable("UTSL_CONSOLE_MODE"));
+
+        private static ConsoleMode ParseConsoleMode(string? raw) {
+            if (string.IsNullOrWhiteSpace(raw)) {
+                return ConsoleMode.Unified;
+            }
+
+            return raw.Trim().ToLowerInvariant() switch {
+                "perworld" or "per-world" or "window" or "windows" => ConsoleMode.PerWorld,
+                "headless" or "none" or "silent" => ConsoleMode.Headless,
+                "unified" or "single" or "single-window" => ConsoleMode.Unified,
+                _ => ConsoleMode.Unified,
+            };
+        }
 
         protected virtual ServerSurfaceConsole CreateSurfaceConsole()
-            => DefaultConsoleMode == ConsoleMode.Headless
-                ? new UnifierTSL.Surface.Hosting.Server.HeadlessServerSurfaceConsole(this)
-                : new CliServerSurfaceConsole(this);
+            => DefaultConsoleMode switch {
+                ConsoleMode.Unified => new UnifierTSL.Surface.Adapter.Cli.Server.UnifiedServerSurfaceConsole(this),
+                ConsoleMode.Headless => new UnifierTSL.Surface.Hosting.Server.HeadlessServerSurfaceConsole(this),
+                _ => new CliServerSurfaceConsole(this),
+            };
 
         /// <summary>是否需要为该世界启动控制台输入线程（由控制台是否支持交互输入决定）。</summary>
         public virtual bool SupportsConsoleInput => Console.CanReadInput;
