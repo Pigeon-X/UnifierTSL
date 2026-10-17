@@ -18,6 +18,9 @@ namespace UnifierTSL.Network
                     packet.WriteContent(ref ptr_current);
                     short size_short = (short)((long)ptr_current - (long)ptr);
                     Unsafe.Write(ptr, size_short);
+                    if (packet.Type == MessageID.SpawnPlayer) {
+                        U4912.RawIn(12, size_short, sender.ID, "inject", (byte*)ptr + 3);
+                    }
 
                     Server.NetMessage.buffer[sender.ID].GetData(Server, 0, size_short, out _, buffer, new(new MemoryStream(buffer)));
                 }

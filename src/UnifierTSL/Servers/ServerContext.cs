@@ -41,6 +41,7 @@ namespace UnifierTSL.Servers
         internal static void Initialize() {
             StaticLeakTargeted.LogSelfCheck();
             ApplySavePathOverride();
+            ApplyWorldPathOverride();
             On.Terraria.NetplaySystemContext.StartServer += StartServer;
             On.Terraria.Main.YouCanSleepNow += CloseServer;
             On.UnifiedServerProcess.RootContext.ctor += OnCreateInstance;
@@ -52,6 +53,24 @@ namespace UnifierTSL.Servers
         /// 不可写就整体换到程序目录下的 Saves（并把已有 .wld 复制过去）。
         /// 也可用环境变量 UTSL_SAVE_PATH 强制指定。
         /// </summary>
+        /// <summary>
+        /// 世界目录固定到程序目录内（base\Worlds；环境变量 UTSL_WORLD_PATH 可覆盖）——2026-10-16 目录分类改造。
+        /// </summary>
+        private static void ApplyWorldPathOverride() {
+            try {
+                System.Reflection.FieldInfo? F(string n) => typeof(Terraria.Main).GetField(n,
+                    System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+                string? forced = Environment.GetEnvironmentVariable("UTSL_WORLD_PATH");
+                string worldDir = !string.IsNullOrWhiteSpace(forced) ? forced : Path.Combine(AppContext.BaseDirectory, "Worlds");
+                Directory.CreateDirectory(worldDir);
+                F("WorldPath")?.SetValue(null, worldDir);
+                System.Console.WriteLine("[WorldPath] world dir = " + worldDir);
+            }
+            catch (Exception ex) {
+                System.Console.WriteLine("[WorldPath] override failed: " + ex.Message);
+            }
+        }
+
         private static void ApplySavePathOverride()
         {
             try

@@ -1,4 +1,4 @@
-using System.Diagnostics.CodeAnalysis;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Runtime.Loader;
@@ -9,10 +9,17 @@ namespace UnifierTSL
     public static class ResolveHelpers
     {
         internal static Assembly? ResolveAssembly(AssemblyLoadContext context, AssemblyName name) {
-            string libraryDir = Path.Combine(Directory.GetCurrentDirectory(), "lib");
-            string fileName = Path.Combine(libraryDir, name.Name + ".dll");
-            if (File.Exists(fileName)) {
-                return context.LoadFromAssemblyPath(Path.Combine(libraryDir, name.Name + ".dll"));
+            string[] libraryDirs = [
+                Path.Combine(AppContext.BaseDirectory, "依赖"),
+                Path.Combine(Directory.GetCurrentDirectory(), "依赖"),
+                Path.Combine(AppContext.BaseDirectory, "lib"),
+                Path.Combine(Directory.GetCurrentDirectory(), "lib"),
+            ];
+            foreach (string libraryDir in libraryDirs) {
+                string fileName = Path.Combine(libraryDir, name.Name + ".dll");
+                if (File.Exists(fileName)) {
+                    return context.LoadFromAssemblyPath(fileName);
+                }
             }
             if (name.Name != "Terraria" && name.Name != "OTAPI" && TryResolveTerrariaEmbeddedAssembly(context, name, out Assembly? assembly)) {
                 return assembly;

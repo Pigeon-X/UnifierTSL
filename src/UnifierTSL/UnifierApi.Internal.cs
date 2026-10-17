@@ -1,4 +1,4 @@
-using System.Globalization;
+﻿using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -117,6 +117,7 @@ namespace UnifierTSL
         internal static void InitializeCore() {
             EventHub = new();
             CommandingBootstrap.Install();
+            SwitchSpawnWatchdog.EnsureRegistered();
 
             pluginHosts = new();
             PluginHosts.InitializeAllAsync()

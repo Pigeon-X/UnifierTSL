@@ -230,13 +230,13 @@ namespace UnifierTSL.Events.Handlers
                 case MessageID.LoadPlayer: ProcessPacket_F<LoadPlayer>(in info); return;
                 case MessageID.SyncPlayer: ProcessPacket_D<SyncPlayer>(in info); return;
                 case MessageID.SyncEquipment: ProcessPacket_F<SyncEquipment>(in info); return;
-                case MessageID.RequestWorldInfo: ProcessPacket_F<RequestWorldInfo>(in info); return;
+                case MessageID.RequestWorldInfo: U4912.RawIn(6, (int)((byte*)ptr_end - (byte*)ptr), sender.ID, "sock", (byte*)ptr + 1); ProcessPacket_F<RequestWorldInfo>(in info); return;
                 case MessageID.WorldData: ProcessPacket_D<WorldData>(in info); return;
-                case MessageID.RequestTileData: ProcessPacket_F<RequestTileData>(in info); return;
+                case MessageID.RequestTileData: U4912.RawIn(8, (int)((byte*)ptr_end - (byte*)ptr), sender.ID, "sock", (byte*)ptr + 1); ProcessPacket_F<RequestTileData>(in info); return;
                 case MessageID.StatusText: ProcessPacket_D<StatusText>(in info); return;
                 case MessageID.TileSection: ProcessPacket_D<TileSection>(in info); return;
                 case MessageID.FrameSection: ProcessPacket_F<FrameSection>(in info); return;
-                case MessageID.SpawnPlayer: ProcessPacket_F<SpawnPlayer>(in info); return;
+                case MessageID.SpawnPlayer: U4912.RawIn(12, (int)((byte*)ptr_end - (byte*)ptr), sender.ID, "sock", (byte*)ptr + 1); ProcessPacket_F<SpawnPlayer>(in info); return;
                 case MessageID.PlayerControls: ProcessPacket_F<PlayerControls>(in info); return;
                 case MessageID.PlayerHealth: ProcessPacket_F<PlayerHealth>(in info); return;
                 case MessageID.TileChange: ProcessPacket_F<TileChange>(in info); return;
@@ -397,6 +397,11 @@ namespace UnifierTSL.Events.Handlers
                 case MessageID.ItemPosition: ProcessPacket_F<ItemPosition>(in info); return;
                 case MessageID.HostToken: ProcessPacket_D<HostToken>(in info); return;
                 case MessageID.DamageNPCAck: ProcessPacket_F<DamageNPCAck>(in info); return;
+                case MessageID.Unused67: {
+                    // 2026-10-16：67 号（代理私有通道：真实 IP/换手重放/拉取应答）认证后放行到插件事件层（D2 消费）；不进入原版管线。
+                    InvokeProcessPacketEvent(in info, ProcessPacketEventType.BeforeOriginalProcess);
+                    return;
+                }
                 default: return;
             }
         }

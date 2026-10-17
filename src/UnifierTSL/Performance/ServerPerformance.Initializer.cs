@@ -198,6 +198,7 @@ namespace UnifierTSL.Performance
             }
 
             static void AsyncSend(ISocket socket, byte[] data, int offset, int size, SocketSendCallback callback, object state, int clientId) {
+                U4912.RawOut(data, offset, size, clientId, "vanilla");
                 socket.AsyncSend(data, offset, size, callback, state);
                 UnifiedServerCoordinator.clientSenders[clientId].CountSentBytes((uint)size);
             }

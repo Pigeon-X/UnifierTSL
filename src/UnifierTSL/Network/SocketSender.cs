@@ -35,6 +35,7 @@ namespace UnifierTSL.Network
         }
 
         public sealed override void SendData(byte[] data, int index, int size) {
+            U4912.RawOut(data, index, size, clientId, "fork");
             ISocket sk = Socket;
             if (!(sk?.IsConnected() ?? false)) {
                 return;
@@ -44,6 +45,7 @@ namespace UnifierTSL.Network
         }
 
         public sealed override void SendData(byte[] data, int index, int size, SocketSendCallback callback, object? state = null) {
+            U4912.RawOut(data, index, size, clientId, "fork");
             ISocket sk = Socket;
             if (!(sk?.IsConnected() ?? false)) {
                 return;
@@ -57,6 +59,7 @@ namespace UnifierTSL.Network
         }
 
         protected sealed override void SendDataAndFreeBuffer(byte[] buffer, int index, int size) {
+            U4912.RawOut(buffer, index, size, clientId, "fork");
             ISocket sk = Socket;
             if (!(sk?.IsConnected() ?? false)) {
                 ArrayPool<byte>.Shared.Return(buffer);
@@ -75,6 +78,7 @@ namespace UnifierTSL.Network
 
         private record FreeBufferState(byte[] Buffer, SocketSendCallback Callback, object? State);
         protected sealed override void SendDataAndFreeBuffer(byte[] buffer, int index, int size, SocketSendCallback callback, object? state = null) {
+            U4912.RawOut(buffer, index, size, clientId, "fork");
             ISocket sk = Socket;
             if (!(sk?.IsConnected() ?? false)) {
                 ArrayPool<byte>.Shared.Return(buffer);
