@@ -5,6 +5,13 @@ namespace UnifierTSL
     /// 附 payload 头十六进制 head=（分析侧自行解码，探针不做语义解析）。</summary>
     internal static class U4912
     {
+        private static readonly bool Enabled = IsEnabled();
+
+        private static bool IsEnabled() {
+            string? value = Environment.GetEnvironmentVariable("UTSL_U4912");
+            return value is "1" or "true" or "True";
+        }
+
         private sealed class Host : Logging.ILoggerHost
         {
             public string Name => "U-4912";
@@ -33,6 +40,7 @@ namespace UnifierTSL
         /// <summary>出站帧：type 在 index+2（[len:2][type:1] 帧式）；len=整帧；head 自 index+3 起 8B。</summary>
         public static unsafe void RawOut(byte[] data, int index, int size, int clientId, string via) {
             try {
+                if (!Enabled) return;
                 if (data is null || size < 3 || index < 0 || index + 2 >= data.Length) return;
                 int t = data[index + 2];
                 if (t != 7 && t != 10 && t != 12 && t != 49) return;
@@ -45,6 +53,7 @@ namespace UnifierTSL
         /// <summary>入站：白名单 8/12；payload 指针由调用点定位（sock＝类型字节+1；inject＝整帧+3）。</summary>
         public static unsafe void RawIn(int type, int len, int who, string src, byte* payload) {
             try {
+                if (!Enabled) return;
                 if (type != 6 && type != 8 && type != 12) return;
                 Log?.Info(category: "U-4912", message: $"[U-4912] <- type={type} len={len} ms={Now()} who={who} src={src}{Head(payload, 8)}");
             } catch { }

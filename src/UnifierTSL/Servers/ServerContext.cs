@@ -40,19 +40,28 @@ namespace UnifierTSL.Servers
 
         internal static void Initialize() {
             StaticLeakTargeted.LogSelfCheck();
-            ApplySavePathOverride();
-            ApplyWorldPathOverride();
+            ApplyPathOverrides();
             On.Terraria.NetplaySystemContext.StartServer += StartServer;
             On.Terraria.Main.YouCanSleepNow += CloseServer;
             On.UnifiedServerProcess.RootContext.ctor += OnCreateInstance;
         }
 
+        private static int pathOverridesApplied;
+
         /// <summary>
-        /// 默认存档目录（Documents\My Games\Terraria）在某些环境下不可写，而 Terraria 在创建
-        /// 世界元数据时会写 favorites.json，写失败会直接终止进程。所以启动时先探测一次：
-        /// 不可写就整体换到程序目录下的 Saves（并把已有 .wld 复制过去）。
-        /// 也可用环境变量 UTSL_SAVE_PATH 强制指定。
+        /// 自动启动服务器发生在 UnifierApi.PrepareRuntime 阶段，早于 ServerContext.Initialize。
+        /// 因此必须在这里先把 Main.WorldPath / SavePath 指向 Core 布局，否则自动启动会在
+        /// 旧的根目录 Worlds 下找不到地图并等待/卡住。
         /// </summary>
+        internal static void ApplyPathOverrides() {
+            if (Interlocked.Exchange(ref pathOverridesApplied, 1) != 0) {
+                return;
+            }
+
+            ApplySavePathOverride();
+            ApplyWorldPathOverride();
+        }
+
         /// <summary>
         /// 世界目录固定到程序目录内（base\Worlds；环境变量 UTSL_WORLD_PATH 可覆盖）——2026-10-16 目录分类改造。
         /// </summary>
@@ -61,7 +70,7 @@ namespace UnifierTSL.Servers
                 System.Reflection.FieldInfo? F(string n) => typeof(Terraria.Main).GetField(n,
                     System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
                 string? forced = Environment.GetEnvironmentVariable("UTSL_WORLD_PATH");
-                string worldDir = !string.IsNullOrWhiteSpace(forced) ? forced : Path.Combine(AppContext.BaseDirectory, "Worlds");
+                string worldDir = !string.IsNullOrWhiteSpace(forced) ? forced : Path.Combine(UnifierApi.BaseDirectory, "Worlds");
                 Directory.CreateDirectory(worldDir);
                 F("WorldPath")?.SetValue(null, worldDir);
                 System.Console.WriteLine("[WorldPath] world dir = " + worldDir);
@@ -71,6 +80,12 @@ namespace UnifierTSL.Servers
             }
         }
 
+        /// <summary>
+        /// 默认存档目录（Documents\My Games\Terraria）在某些环境下不可写，而 Terraria 在创建
+        /// 世界元数据时会写 favorites.json，写失败会直接终止进程。所以启动时先探测一次：
+        /// 不可写就整体换到程序目录下的 Saves（并把已有 .wld 复制过去）。
+        /// 也可用环境变量 UTSL_SAVE_PATH 强制指定。
+        /// </summary>
         private static void ApplySavePathOverride()
         {
             try
@@ -94,7 +109,7 @@ namespace UnifierTSL.Servers
                     }
                     catch
                     {
-                        target = Path.Combine(AppContext.BaseDirectory, "Saves");
+                        target = Path.Combine(UnifierApi.BaseDirectory, "Saves");
                     }
                 }
 

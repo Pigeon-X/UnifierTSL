@@ -9,12 +9,19 @@ namespace UnifierTSL
     public static class ResolveHelpers
     {
         internal static Assembly? ResolveAssembly(AssemblyLoadContext context, AssemblyName name) {
-            string[] libraryDirs = [
-                Path.Combine(AppContext.BaseDirectory, "依赖"),
-                Path.Combine(Directory.GetCurrentDirectory(), "依赖"),
-                Path.Combine(AppContext.BaseDirectory, "lib"),
-                Path.Combine(Directory.GetCurrentDirectory(), "lib"),
-            ];
+            string[] libraryDirs = new[] {
+                RuntimeLayout.BinDirectory,
+                Path.Combine(RuntimeLayout.RuntimeDirectory, "app"),
+                Path.Combine(RuntimeLayout.RuntimeDirectory, RuntimeLayout.LegacyDependencyDirectoryName),
+                Path.Combine(RuntimeLayout.RuntimeDirectory, RuntimeLayout.LegacyLibraryDirectoryName),
+                Path.Combine(AppContext.BaseDirectory, RuntimeLayout.CoreDirectoryName, RuntimeLayout.BinDirectoryName),
+                Path.Combine(AppContext.BaseDirectory, RuntimeLayout.CoreDirectoryName, "app"),
+                Path.Combine(AppContext.BaseDirectory, RuntimeLayout.CoreDirectoryName, RuntimeLayout.LegacyDependencyDirectoryName),
+                Path.Combine(AppContext.BaseDirectory, RuntimeLayout.CoreDirectoryName, RuntimeLayout.LegacyLibraryDirectoryName),
+                Path.Combine(AppContext.BaseDirectory, "app"),
+                Path.Combine(AppContext.BaseDirectory, RuntimeLayout.LegacyDependencyDirectoryName),
+                Path.Combine(AppContext.BaseDirectory, RuntimeLayout.LegacyLibraryDirectoryName),
+            }.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
             foreach (string libraryDir in libraryDirs) {
                 string fileName = Path.Combine(libraryDir, name.Name + ".dll");
                 if (File.Exists(fileName)) {

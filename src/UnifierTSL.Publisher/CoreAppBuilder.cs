@@ -73,7 +73,7 @@ public class CoreAppBuilder(string relativeProjectPath)
         HostWriter.CreateAppHost(
             appHostSourceFilePath: appHostTemplate,
             appHostDestinationFilePath: executable,
-            appBinaryFilePath: Path.Combine("lib", $"{projectName}.dll"),
+            appBinaryFilePath: Path.Combine("bin", $"{projectName}.dll"),
             windowsGraphicalUserInterface: false);
 
         return new CoreAppBuilderResult(

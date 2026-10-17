@@ -131,7 +131,7 @@ namespace UnifierTSL
                                         Array.Copy(frame, 0, buffer.readBuffer, f1Write, frame.Length);
                                         f1Write += frame.Length; injected++; injectedBytes += frame.Length;
                                     }
-                                    Logger.Info(category: "PendingConnection", message: $"[D1-DBG] F1 暂存帧注入（路由后）：{injected}/{f1Stash.Count} 枚 {injectedBytes} B" + (injected < f1Stash.Count ? "（容量不足，其余弃投）" : ""));
+                                    TracePreAuthInfo($"[D1-DBG] F1 暂存帧注入（路由后）：{injected}/{f1Stash.Count} 枚 {injectedBytes} B" + (injected < f1Stash.Count ? "（容量不足，其余弃投）" : ""));
                                     f1Stash.Clear();
                                 }
                                 // If there is unprocessed data remaining, copy it to the beginning of the buffer for the next processing round.
@@ -322,7 +322,7 @@ namespace UnifierTSL
                                     if (PreAuthObservePass) {
                                         try {
                                             PreAuthPacketEvent preAuthEvt = new(Index, buffer + packetStart, buffer + packetStart + contentLength);
-                                            Logger.Info(category: "PendingConnection", message: $"[D1-DBG] PreAuthPacket 派发 type={type} len={contentLength}");
+                                            TracePreAuthInfo($"[D1-DBG] PreAuthPacket 派发 type={type} len={contentLength}");
                                             UnifierApi.EventHub.Netplay.PreAuthPacket.Invoke(in preAuthEvt, out _);
                                         }
                                         catch (Exception exD1Dbg) { try { Logger.Warning(category: "PendingConnection", message: $"[D1-DBG] PreAuthPacket 派发异常: " + exD1Dbg.GetType().Name + " / " + exD1Dbg.Message); } catch { } }
@@ -342,6 +342,23 @@ namespace UnifierTSL
         private static readonly ILoggerHost LogHost = new LoggerHost();
         private static readonly RoleLogger logger;
         public static RoleLogger Logger => logger;
+
+        private static bool TraceTransfer =>
+            Environment.GetEnvironmentVariable("UTSL_TRANSFER_TRACE") is "1" or "true" or "True";
+        private static bool TracePreAuth =>
+            Environment.GetEnvironmentVariable("UTSL_PREAUTH_TRACE") is "1" or "true" or "True";
+
+        private static void TraceTransferInfo(string message) {
+            if (TraceTransfer) {
+                Logger.Info(category: "PlayerTransfer", message: message);
+            }
+        }
+
+        private static void TracePreAuthInfo(string message) {
+            if (TracePreAuth) {
+                Logger.Info(category: "PendingConnection", message: message);
+            }
+        }
 
         /// <summary>
         /// 预认证阶段收到未知包时是否"严格踢人"。
@@ -417,7 +434,7 @@ namespace UnifierTSL
                 byte[] copy = new byte[frameLen];
                 Array.Copy(source, frameStart, copy, 0, frameLen);
                 list.Add(copy);
-                Logger.Info(category: "PendingConnection", message: $"[D1-DBG] F1 暂存早到包（待路由后注入）：type={(MessageID)source[frameStart + 2]} len={frameLen} 累计={list.Count}");
+                TracePreAuthInfo($"[D1-DBG] F1 暂存早到包（待路由后注入）：type={(MessageID)source[frameStart + 2]} len={frameLen} 累计={list.Count}");
             } catch { }
         }
         private static readonly ListenerController listenerController = new(7777);
@@ -1060,19 +1077,19 @@ namespace UnifierTSL
             try {
                 var nm = to.NetMessage;
                 nm.buffer[plr].broadcast = true;
-                Logger.Info(category: "PlayerTransfer", message: $"[TransferTrace] 收尾组 ①broadcast=true +{swFin.ElapsedMilliseconds}ms");
+                TraceTransferInfo($"[TransferTrace] 收尾组 ①broadcast=true +{swFin.ElapsedMilliseconds}ms");
                 nm.SyncConnectedPlayer(plr);
-                Logger.Info(category: "PlayerTransfer", message: $"[TransferTrace] 收尾组 ②SyncConnectedPlayer 返回 +{swFin.ElapsedMilliseconds}ms");
+                TraceTransferInfo($"[TransferTrace] 收尾组 ②SyncConnectedPlayer 返回 +{swFin.ElapsedMilliseconds}ms");
                 bool isHost = nm.DoesPlayerSlotCountAsAHost(plr);
                 to.Main.countsAsHostForGameplay[plr] = isHost;
                 if (isHost) {
                     bool h139 = nm.TrySendData((int)Terraria.ID.MessageID.SetCountsAsHostForGameplay, plr, -1, null, plr, 1f);
-                    Logger.Info(category: "PlayerTransfer", message: $"[TransferTrace] 收尾组 ③139(host={isHost}) TrySendData={h139} +{swFin.ElapsedMilliseconds}ms");
+                    TraceTransferInfo($"[TransferTrace] 收尾组 ③139(host={isHost}) TrySendData={h139} +{swFin.ElapsedMilliseconds}ms");
                 }
                 bool f129 = nm.TrySendData((int)Terraria.ID.MessageID.FinishedConnectingToServer, plr);
-                Logger.Info(category: "PlayerTransfer", message: $"[Trace] 收尾组 ④129 FinishedConnectingToServer TrySendData={f129} +{swFin.ElapsedMilliseconds}ms");
+                TraceTransferInfo($"[TransferTrace] 收尾组 ④129 FinishedConnectingToServer TrySendData={f129} +{swFin.ElapsedMilliseconds}ms");
                 nm.greetPlayer(plr);
-                Logger.Info(category: "PlayerTransfer", message: $"[TransferTrace] 收尾组 ⑤greetPlayer 返回 +{swFin.ElapsedMilliseconds}ms");
+                TraceTransferInfo($"[TransferTrace] 收尾组 ⑤greetPlayer 返回 +{swFin.ElapsedMilliseconds}ms");
             }
             catch (Exception exFin) { try { Logger.Error(category: "PlayerTransfer", message: "[TransferTrace] 收尾组异常", ex: exFin); } catch { } }
         }
@@ -1195,9 +1212,7 @@ namespace UnifierTSL
                             RemoteClient g = globalClients[plr];
                             bool sameClient;
                             try { sameClient = ReferenceEquals(to.Netplay.Clients[plr], g); } catch { sameClient = false; }
-                            Logger.Info(
-                                category: "PlayerTransfer",
-                                message: $"[TransferTrace] who={plr} to={to.Name} sameClient={sameClient} globalState={(g is null ? -99 : g.State)} globalConnected={(g is not null && g.IsConnected())} globalSocket={(g?.Socket is null ? "null" : "ok")} toPlayerActive={to.Main.player[plr]?.active} toCtxClientActive={TryGetCtxClientActive(to, plr)}");
+                            TraceTransferInfo($"[TransferTrace] who={plr} to={to.Name} sameClient={sameClient} globalState={(g is null ? -99 : g.State)} globalConnected={(g is not null && g.IsConnected())} globalSocket={(g?.Socket is null ? "null" : "ok")} toPlayerActive={to.Main.player[plr]?.active} toCtxClientActive={TryGetCtxClientActive(to, plr)}");
                         }
                         catch (Exception exTrace) { try { Logger.Warning(category: "PlayerTransfer", message: "[TransferTrace] 探针异常: " + exTrace.Message); } catch { } }
 
@@ -1227,29 +1242,27 @@ namespace UnifierTSL
                                 onlineDone.Set();
                             }
                             if (onlineDone.Wait(TimeSpan.FromSeconds(15))) {
-                                // 显式探针：再补发一次 7 号 WorldData，记录返回来判断"发送路径是否可用"
-                                try {
-                                    bool probe = to.NetMessage.TrySendData(Terraria.ID.MessageID.WorldData, plr);
-                                    Logger.Info(
-                                        category: "PlayerTransfer",
-                                        message: $"[TransferTrace] 显式补发 7 号(WorldData) → TrySendData={probe}（true=已投递，false=被发送层拒绝）");
-                                }
-                                catch (Exception exP) { try { Logger.Warning(category: "PlayerTransfer", message: "[TransferTrace] 补发 7 号异常: " + exP.Message); } catch { } }
+                                if (TraceTransfer) {
+                                    // 显式探针：再补发一次 7 号 WorldData，记录返回来判断"发送路径是否可用"
+                                    try {
+                                        bool probe = to.NetMessage.TrySendData(Terraria.ID.MessageID.WorldData, plr);
+                                        TraceTransferInfo($"[TransferTrace] 显式补发 7 号(WorldData) → TrySendData={probe}（true=已投递，false=被发送层拒绝）");
+                                    }
+                                    catch (Exception exP) { try { Logger.Warning(category: "PlayerTransfer", message: "[TransferTrace] 补发 7 号异常: " + exP.Message); } catch { } }
 
-                                // 控制包：向【同一个客户端】发一个无害的 2 号 Status（定向，非广播）。
-                                // 判读：控制包到、7 号不到 ⇒ 7 号被特判/发送侧按消息类型差别对待；
-                                //       控制包也到不了 ⇒ 定向发送路径对该客户端整体不可用（查 clientSenders/写 socket）。
-                                try {
-                                    bool ctrl = to.NetMessage.TrySendData(
-                                        msgType: 9,   // ← 14-维度 更正：本栈 MessageID.Kick=2、StatusText=9（原来写 2 = 会把玩家踢回主菜单）
-                                        remoteClient: plr,
-                                        ignoreClient: -1,
-                                        text: NetworkText.FromLiteral("[TransferTrace] 诊断控制包（可忽略）"));
-                                    Logger.Info(
-                                        category: "PlayerTransfer",
-                                        message: $"[TransferTrace] 控制包 9 号(StatusText,定向) → TrySendData={ctrl}（true=未抛异常；是否到达看代理抓包）");
+                                    // 控制包：向【同一个客户端】发一个无害的 9 号 Status（定向，非广播）。
+                                    // 判读：控制包到、7 号不到 ⇒ 7 号被特判/发送侧按消息类型差别对待；
+                                    //       控制包也到不了 ⇒ 定向发送路径对该客户端整体不可用（查 clientSenders/写 socket）。
+                                    try {
+                                        bool ctrl = to.NetMessage.TrySendData(
+                                            msgType: 9,   // ← 14-维度 更正：本栈 MessageID.Kick=2、StatusText=9（原来写 2 = 会把玩家踢回主菜单）
+                                            remoteClient: plr,
+                                            ignoreClient: -1,
+                                            text: NetworkText.FromLiteral("[TransferTrace] 诊断控制包（可忽略）"));
+                                        TraceTransferInfo($"[TransferTrace] 控制包 9 号(StatusText,定向) → TrySendData={ctrl}（true=未抛异常；是否到达看代理抓包）");
+                                    }
+                                    catch (Exception exC) { try { Logger.Warning(category: "PlayerTransfer", message: "[TransferTrace] 控制包异常: " + exC.Message); } catch { } }
                                 }
-                                catch (Exception exC) { try { Logger.Warning(category: "PlayerTransfer", message: "[TransferTrace] 控制包异常: " + exC.Message); } catch { } }
 
                                 // ===== 收尾组双分支化（B-1 收尾缺陷结构修复）：fx=1 目标线程分支同样执行收尾组 =====
                                 if (string.Equals(Environment.GetEnvironmentVariable("UTSL_SWITCH_FINISH_FRAMES"), "1", StringComparison.Ordinal)) {
@@ -1265,16 +1278,16 @@ namespace UnifierTSL
                         else {
                             // v4 分点打点：内联上线段（锁外、不 Post）逐步留痕，异常/卡死一眼定位
                             System.Diagnostics.Stopwatch swOnline = System.Diagnostics.Stopwatch.StartNew();
-                            Logger.Info(category: "PlayerTransfer", message: $"[TransferTrace] 上线段(内联) 进入 t={DateTime.Now:HH:mm:ss.fff}");
-                            try { to.SyncServerOnlineToPlayer(plr); Logger.Info(category: "PlayerTransfer", message: $"[TransferTrace] 上线段 ①SyncServerOnlineToPlayer 返回 +{swOnline.ElapsedMilliseconds}ms"); }
+                            TraceTransferInfo($"[TransferTrace] 上线段(内联) 进入 t={DateTime.Now:HH:mm:ss.fff}");
+                            try { to.SyncServerOnlineToPlayer(plr); TraceTransferInfo($"[TransferTrace] 上线段 ①SyncServerOnlineToPlayer 返回 +{swOnline.ElapsedMilliseconds}ms"); }
                             catch (Exception exS1) { Logger.Error(category: "PlayerTransfer", message: $"[TransferTrace] 上线段 ①异常 +{swOnline.ElapsedMilliseconds}ms", ex: exS1); }
-                            try { player.Spawn(to, PlayerSpawnContext.SpawningIntoWorld); Logger.Info(category: "PlayerTransfer", message: $"[TransferTrace] 上线段 ②Spawn 返回 +{swOnline.ElapsedMilliseconds}ms"); }
+                            try { player.Spawn(to, PlayerSpawnContext.SpawningIntoWorld); TraceTransferInfo($"[TransferTrace] 上线段 ②Spawn 返回 +{swOnline.ElapsedMilliseconds}ms"); }
                             catch (Exception exS2) { Logger.Error(category: "PlayerTransfer", message: $"[TransferTrace] 上线段 ②异常 +{swOnline.ElapsedMilliseconds}ms", ex: exS2); }
-                            try { to.NetMessage.SendData(Terraria.ID.MessageID.PlayerSpawn, plr, -1, null, plr, (byte)PlayerSpawnContext.SpawningIntoWorld); Logger.Info(category: "PlayerTransfer", message: $"[TransferTrace] 上线段 ③SendData(PlayerSpawn) 返回 +{swOnline.ElapsedMilliseconds}ms"); }
+                            try { to.NetMessage.SendData(Terraria.ID.MessageID.PlayerSpawn, plr, -1, null, plr, (byte)PlayerSpawnContext.SpawningIntoWorld); TraceTransferInfo($"[TransferTrace] 上线段 ③SendData(PlayerSpawn) 返回 +{swOnline.ElapsedMilliseconds}ms"); }
                             catch (Exception exS3) { Logger.Error(category: "PlayerTransfer", message: $"[TransferTrace] 上线段 ③异常 +{swOnline.ElapsedMilliseconds}ms", ex: exS3); }
-                            try { to.SyncPlayerJoinToOthers(plr); Logger.Info(category: "PlayerTransfer", message: $"[TransferTrace] 上线段 ④JoinToOthers 返回 +{swOnline.ElapsedMilliseconds}ms"); }
+                            try { to.SyncPlayerJoinToOthers(plr); TraceTransferInfo($"[TransferTrace] 上线段 ④JoinToOthers 返回 +{swOnline.ElapsedMilliseconds}ms"); }
                             catch (Exception exS4) { Logger.Error(category: "PlayerTransfer", message: $"[TransferTrace] 上线段 ④异常 +{swOnline.ElapsedMilliseconds}ms", ex: exS4); }
-                            Logger.Info(category: "PlayerTransfer", message: $"[TransferTrace] 上线段(内联) 退出 t={DateTime.Now:HH:mm:ss.fff} 总耗时={swOnline.ElapsedMilliseconds}ms");
+                            TraceTransferInfo($"[TransferTrace] 上线段(内联) 退出 t={DateTime.Now:HH:mm:ss.fff} 总耗时={swOnline.ElapsedMilliseconds}ms");
                             // ===== 15-UTSL 切换收尾组（实验；UTSL_SWITCH_FINISH_FRAMES=1 开启，默认关）=====
                             // 双分支化：本体抽到 RunSwitchFinishGroup，fx=0/fx=1 共用。
                             if (string.Equals(Environment.GetEnvironmentVariable("UTSL_SWITCH_FINISH_FRAMES"), "1", StringComparison.Ordinal)) {

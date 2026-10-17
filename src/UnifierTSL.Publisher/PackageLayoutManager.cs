@@ -6,6 +6,7 @@ public class PackageLayoutManager
 {
     public readonly string RID;
     public readonly string PublishPath;
+    public readonly string CorePath;
     public readonly string LibraryPath;
     public readonly string RuntimesPath;
     public readonly string AppPath;
@@ -17,11 +18,12 @@ public class PackageLayoutManager
 
         PublishPath = useRidFolder ? Path.Combine(outputPath, "utsl-" + RID) : outputPath;
 
-        LibraryPath = Path.Combine(PublishPath, "lib");
-        RuntimesPath = Path.Combine(PublishPath, "runtimes");
-        AppPath = Path.Combine(PublishPath, "app");
-        PluginsPath = Path.Combine(PublishPath, "plugins");
-        I18nPath = Path.Combine(PublishPath, "i18n");
+        CorePath = Path.Combine(PublishPath, "Core");
+        LibraryPath = Path.Combine(CorePath, "bin");
+        RuntimesPath = Path.Combine(CorePath, "runtimes");
+        AppPath = Path.Combine(CorePath, "app");
+        PluginsPath = Path.Combine(CorePath, "plugins");
+        I18nPath = Path.Combine(CorePath, "i18n");
 
         // Handle directory cleanup based on cleanOutputDir flag
         if (Directory.Exists(PublishPath)) {
@@ -35,11 +37,15 @@ public class PackageLayoutManager
         }
 
         Directory.CreateDirectory(PublishPath);
+        Directory.CreateDirectory(CorePath);
         Directory.CreateDirectory(LibraryPath);
         Directory.CreateDirectory(RuntimesPath);
         Directory.CreateDirectory(AppPath);
         Directory.CreateDirectory(PluginsPath);
         Directory.CreateDirectory(I18nPath);
+        Directory.CreateDirectory(Path.Combine(CorePath, "config"));
+        Directory.CreateDirectory(Path.Combine(CorePath, "logs"));
+        Directory.CreateDirectory(Path.Combine(CorePath, "Worlds"));
     }
 
     public async Task InputAppTools(ImmutableArray<string> appPaths) {

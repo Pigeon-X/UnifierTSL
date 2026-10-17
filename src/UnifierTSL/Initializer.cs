@@ -21,7 +21,7 @@ namespace UnifierTSL
         private static void AssemblyResolverInit() {
             AssemblyLoadContext.Default.Resolving += ResolveHelpers.ResolveAssembly;
             AssemblyLoadContext.Default.ResolvingUnmanagedDll += ResolveHelpers.ResolveNativeDll;
-            System.Console.WriteLine("[Deps] assembly probe enabled: base/cwd x 依赖/lib");
+            System.Console.WriteLine("[Deps] assembly probe enabled: Core/bin, Core/app, bin, app, 依赖, lib");
         }
 
         /// <summary>

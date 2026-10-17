@@ -82,6 +82,12 @@ namespace UnifierTSL
             string? v = Environment.GetEnvironmentVariable("UTSL_SWITCH_T3");
             return v is "1" or "true" or "True";
         }
+        private static bool Trace => Environment.GetEnvironmentVariable("UTSL_SWITCH_TRACE") is "1" or "true" or "True";
+        private static void TraceInfo(string message) {
+            if (Trace) {
+                UnifierApi.Logger.Info(category: "PlayerTransfer", message: message);
+            }
+        }
         private static bool EnvT3Hint() {
             string? v = Environment.GetEnvironmentVariable("UTSL_SWITCH_T3_HINT");
             return !(v is "0" or "false" or "False");
@@ -121,7 +127,7 @@ namespace UnifierTSL
         }
 
         private static string? FindPolicyPath() {
-            foreach (string root in new[] { Environment.CurrentDirectory, AppContext.BaseDirectory }) {
+            foreach (string root in new[] { UnifierApi.BaseDirectory, Environment.CurrentDirectory, AppContext.BaseDirectory }) {
                 try {
                     string p = Path.Combine(root, "config", "UnifierTSL", "Watchdog.json");
                     if (File.Exists(p)) return p;
@@ -200,9 +206,9 @@ namespace UnifierTSL
                 NetPacketHandler.Register<TrProtocol.NetPackets.SyncPlayer>(OnSyncPlayerProbe, HandlerPriority.Lower);
                 NetPacketHandler.Register<TrProtocol.NetPackets.RequestWorldInfo>(OnRequestWorldInfoProbe, HandlerPriority.Lower);
                 NetPacketHandler.Register<TrProtocol.NetPackets.PlayerControls>(OnClientPlayerControlsProbe, HandlerPriority.Lower);
-                UnifierApi.Logger.Info(category: "PlayerTransfer", message: "[TransferTrace] 看门狗 已注册 C2S 12 观察点（Lower）");
-                UnifierApi.Logger.Info(category: "PlayerTransfer", message: "[TransferTrace] 观察器 已注册 4号(SyncPlayer)/6号(RequestWorldInfo)（Lower）");
-                UnifierApi.Logger.Info(category: "PlayerTransfer", message: "[TransferTrace] 观察器 已注册 13号(PlayerControls/活性)（Lower）");
+                TraceInfo("[TransferTrace] 看门狗 已注册 C2S 12 观察点（Lower）");
+                TraceInfo("[TransferTrace] 观察器 已注册 4号(SyncPlayer)/6号(RequestWorldInfo)（Lower）");
+                TraceInfo("[TransferTrace] 观察器 已注册 13号(PlayerControls/活性)（Lower）");
             }
             catch (Exception ex) {
                 try { UnifierApi.Logger.Warning(category: "PlayerTransfer", message: "[TransferTrace] 看门狗 注册失败: " + ex.Message); } catch { }
@@ -213,12 +219,12 @@ namespace UnifierTSL
         private static void OnSyncPlayerProbe(ref ReceivePacketEvent<TrProtocol.NetPackets.SyncPlayer> args) {
             try {
                 string nm = args.Packet.Name ?? "";
-                UnifierApi.Logger.Info(category: "PlayerTransfer", message: $"[TransferTrace] 观察器 4号 nameLen={nm.Length} slot={args.Who} world={args.Server.Name} t={DateTime.Now:HH:mm:ss.fff}");
+                TraceInfo($"[TransferTrace] 观察器 4号 nameLen={nm.Length} slot={args.Who} world={args.Server.Name} t={DateTime.Now:HH:mm:ss.fff}");
             } catch { }
         }
         private static void OnRequestWorldInfoProbe(ref ReceivePacketEvent<TrProtocol.NetPackets.RequestWorldInfo> args) {
             try {
-                UnifierApi.Logger.Info(category: "PlayerTransfer", message: $"[TransferTrace] 观察器 6号 RequestWorldInfo 到达 slot={args.Who} world={args.Server.Name} t={DateTime.Now:HH:mm:ss.fff}");
+                TraceInfo($"[TransferTrace] 观察器 6号 RequestWorldInfo 到达 slot={args.Who} world={args.Server.Name} t={DateTime.Now:HH:mm:ss.fff}");
             } catch { }
         }
         private static void OnClientSpawnPlayer(ref ReceivePacketEvent<SpawnPlayer> args) {
@@ -227,7 +233,7 @@ namespace UnifierTSL
                 ackSeenEver[plr] = 1;
                 if (pending.TryRemove(plr, out Pending? p)) {
                     long dt = Environment.TickCount64 - p.ArmedMs;
-                    UnifierApi.Logger.Info(category: "PlayerTransfer", message: $"[TransferTrace] 看门狗 收到 C2S 12 撤防 +{dt}ms（world={args.Server.Name} 玩家={p.Name}）");
+                    TraceInfo($"[TransferTrace] 看门狗 收到 C2S 12 撤防 +{dt}ms（world={args.Server.Name} 玩家={p.Name}）");
                 }
             }
             catch { }
@@ -365,7 +371,7 @@ namespace UnifierTSL
                     Thread t = new(WatchLoop) { IsBackground = true, Name = "UTSL-SwitchSpawnWatchdog" };
                     t.Start();
                 }
-                UnifierApi.Logger.Info(category: "PlayerTransfer", message: $"[TransferTrace] 看门狗 布防（→{to.Name} plr={plr} 玩家={name} 阈值={pol.DelayMs}ms 可重发={pol.MaxResends} 节拍={pol.CadenceMs}ms 末枚等待={pol.PostWaitMs}ms 再驱动={reDriveText} 硬重驱={pol.HardReDriveMax} T3={(pol.T3 ? 1 : 0)}）");
+                TraceInfo($"[TransferTrace] 看门狗 布防（→{to.Name} plr={plr} 玩家={name} 阈值={pol.DelayMs}ms 可重发={pol.MaxResends} 节拍={pol.CadenceMs}ms 末枚等待={pol.PostWaitMs}ms 再驱动={reDriveText} 硬重驱={pol.HardReDriveMax} T3={(pol.T3 ? 1 : 0)}）");
             }
             catch (Exception ex) {
                 try { UnifierApi.Logger.Warning(category: "PlayerTransfer", message: "[TransferTrace] 看门狗 布防异常: " + ex.Message); } catch { }
@@ -392,7 +398,7 @@ namespace UnifierTSL
                         if (!connected || !ReferenceEquals(cur, p.To)) {
                             if (pending.TryRemove(p.Plr, out _)) {
                                 int usedRc = p.Policy.MaxResends - p.ResendsLeft;
-                                UnifierApi.Logger.Info(category: "PlayerTransfer", message: $"[TransferTrace] 看门狗 撤防（连接/路由变化）玩家={p.Name}");
+                                TraceInfo($"[TransferTrace] 看门狗 撤防（连接/路由变化）玩家={p.Name}");
                                 UnifierApi.Logger.Warning(category: "PlayerTransfer", message: $"[卡切] 未确认（连接/路由变化）玩家={p.Name} 目标={p.To.Name} 历时={age}ms 已重发={usedRc}/{p.Policy.MaxResends}｜{ActivityText(p.Plr, now)}｜本场收尾确认未到（客户端侧）");
                             }
                             continue;

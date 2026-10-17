@@ -8,6 +8,7 @@ namespace UnifierTSL
     internal class Program
     {
         private static void Main(string[] args) {
+            RuntimeLayout.Initialize();
             Initializer.InitializeResolver();
             LauncherSurfaceConsole.Initialize(new TerminalLauncherSurfaceHost());
             UnifierApi.HandleCommandLinePreRun(args);

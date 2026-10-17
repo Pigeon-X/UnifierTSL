@@ -17,12 +17,16 @@ namespace UnifierTSL.Surface.Adapter.Cli.Sessions {
             ThrowIfDisposed();
             StopClient(killIfRunning: true);
 
-            var clientExePath = Path.Combine("app", $"UnifierTSL.ConsoleClient{FileSystemHelper.GetExecutableExtension()}");
+            var clientExePath = Path.Combine(
+                UnifierApi.BaseDirectory,
+                "app",
+                $"UnifierTSL.ConsoleClient{FileSystemHelper.GetExecutableExtension()}");
             var startInfo = new ProcessStartInfo {
                 FileName = clientExePath,
                 Arguments = pipeName,
                 UseShellExecute = true,
-                CreateNoWindow = false
+                CreateNoWindow = false,
+                WorkingDirectory = UnifierApi.BaseDirectory
             };
 
             var process = new Process {

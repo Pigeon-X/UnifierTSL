@@ -19,7 +19,7 @@ namespace UnifierTSL
                             $"@ {UnifiedServerCoordinator.ListeningEndpoint} " +
                             $"USP for Terraria v{VersionHelper.TerrariaVersion}";
         }
-        public static string LibraryDirectory => AppContext.BaseDirectory;
+        public static string LibraryDirectory => RuntimeLayout.BinDirectory;
         public static string BaseDirectory => Directory.GetCurrentDirectory();
         public static string RootConfigPath => Path.Combine(BaseDirectory, "config", "config.json");
         public static string TranslationsDirectory => Path.Combine(BaseDirectory, "i18n");
