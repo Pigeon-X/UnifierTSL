@@ -35,7 +35,9 @@ namespace Rests
 		{
 			public static readonly TokenData None = default(TokenData);
 
+			[Newtonsoft.Json.JsonProperty("用户名")]
 			public string Username { get; set; }
+			[Newtonsoft.Json.JsonProperty("用户组")]
 			public string UserGroupName { get; set; }
 		}
 
