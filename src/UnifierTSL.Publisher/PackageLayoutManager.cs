@@ -22,7 +22,7 @@ public class PackageLayoutManager
         LibraryPath = Path.Combine(CorePath, "bin");
         RuntimesPath = Path.Combine(CorePath, "runtimes");
         AppPath = Path.Combine(CorePath, "app");
-        PluginsPath = Path.Combine(CorePath, "plugins");
+        PluginsPath = Path.Combine(PublishPath, "plugins");
         I18nPath = Path.Combine(CorePath, "i18n");
 
         // Handle directory cleanup based on cleanOutputDir flag
@@ -43,9 +43,9 @@ public class PackageLayoutManager
         Directory.CreateDirectory(AppPath);
         Directory.CreateDirectory(PluginsPath);
         Directory.CreateDirectory(I18nPath);
-        Directory.CreateDirectory(Path.Combine(CorePath, "config"));
-        Directory.CreateDirectory(Path.Combine(CorePath, "logs"));
-        Directory.CreateDirectory(Path.Combine(CorePath, "Worlds"));
+        Directory.CreateDirectory(Path.Combine(PublishPath, "config"));
+        Directory.CreateDirectory(Path.Combine(PublishPath, "logs"));
+        Directory.CreateDirectory(Path.Combine(PublishPath, "Worlds"));
     }
 
     public async Task InputAppTools(ImmutableArray<string> appPaths) {

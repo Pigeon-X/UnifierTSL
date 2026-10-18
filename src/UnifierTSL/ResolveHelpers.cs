@@ -51,8 +51,6 @@ namespace UnifierTSL
             string currentRid = RuntimeInformation.RuntimeIdentifier;
             IEnumerable<string> fallbackRids = RidGraph.Instance.ExpandRuntimeIdentifier(currentRid);
 
-            string dir = Directory.GetCurrentDirectory();
-
             string extension = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? ".dll" :
                 RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ? ".so" :
                 RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ? ".dylib" :
@@ -74,11 +72,18 @@ namespace UnifierTSL
                 }
             }
 
-            foreach (string rid in fallbackRids) {
-                foreach (string nativeName in nativeNames) {
-                    string currentPath = Path.Combine(dir, "runtimes", rid, "native", nativeName);
-                    if (File.Exists(currentPath)) {
-                        return NativeLibrary.Load(currentPath);
+            string[] roots = new[] {
+                RuntimeLayout.RuntimeDirectory,
+                AppContext.BaseDirectory,
+                Directory.GetCurrentDirectory(),
+            }.Distinct(StringComparer.OrdinalIgnoreCase).ToArray();
+            foreach (string root in roots) {
+                foreach (string rid in fallbackRids) {
+                    foreach (string nativeName in nativeNames) {
+                        string currentPath = Path.Combine(root, "runtimes", rid, "native", nativeName);
+                        if (File.Exists(currentPath)) {
+                            return NativeLibrary.Load(currentPath);
+                        }
                     }
                 }
             }

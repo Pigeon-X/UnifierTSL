@@ -18,8 +18,7 @@ namespace UnifierTSL.Surface.Adapter.Cli.Sessions {
             StopClient(killIfRunning: true);
 
             var clientExePath = Path.Combine(
-                UnifierApi.BaseDirectory,
-                "app",
+                RuntimeLayout.AppDirectory,
                 $"UnifierTSL.ConsoleClient{FileSystemHelper.GetExecutableExtension()}");
             var startInfo = new ProcessStartInfo {
                 FileName = clientExePath,

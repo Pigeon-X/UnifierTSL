@@ -39,23 +39,26 @@ namespace UnifierTSL
         public static string RuntimeDirectory =>
             UsesCoreDirectory ? CoreDirectory : Directory.GetCurrentDirectory();
 
+        /// <summary>配置、日志、插件与世界等用户数据固定在安装根目录。</summary>
+        public static string DataDirectory => ExecutableDirectory;
+
+        public static string AppDirectory =>
+            Path.Combine(RuntimeDirectory, "app");
+
         public static string BinDirectory =>
             Path.Combine(RuntimeDirectory, BinDirectoryName);
+
+        public static string TranslationsDirectory =>
+            Path.Combine(RuntimeDirectory, "i18n");
 
         public static void Initialize() {
             if (!UsesCoreDirectory) {
                 return;
             }
 
-            if (!string.Equals(
-                    Path.GetFullPath(Directory.GetCurrentDirectory()),
-                    Path.GetFullPath(CoreDirectory),
-                    StringComparison.OrdinalIgnoreCase)) {
-                Directory.SetCurrentDirectory(CoreDirectory);
-            }
-
             Environment.SetEnvironmentVariable("UTSL_RUNTIME_ROOT", CoreDirectory);
-            Console.WriteLine($"[Layout] runtime root = {CoreDirectory}");
+            Environment.SetEnvironmentVariable("UTSL_DATA_ROOT", DataDirectory);
+            Console.WriteLine($"[Layout] runtime root = {CoreDirectory}; data root = {DataDirectory}");
         }
     }
 }
