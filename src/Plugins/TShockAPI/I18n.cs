@@ -31,58 +31,13 @@ namespace TShockAPI
 {
     static class I18n
     {
-        static string TranslationsDirectory => Path.Combine(Directory.GetCurrentDirectory(), "i18n");
+        static string TranslationsDirectory => UnifierApi.TranslationsDirectory;
         static CultureInfo TranslationCultureInfo {
             get {
-                // cross-platform mapping of cultureinfos can be a bit screwy, so give our users
-                // the chance to explicitly spell out which translation they would like to use.
-                // this is an environment variable instead of a flag because this needs to be
-                // valid whether the passed flags are in a sane state or not.
                 if (Environment.GetEnvironmentVariable("TSHOCK_LANGUAGE") is string overrideLang) {
                     return new CultureInfo(overrideLang);
                 }
-
-                static CultureInfo Redirect(CultureInfo cultureInfo)
-                    => cultureInfo.Name == "zh-Hans" ? new CultureInfo("zh-CN") : cultureInfo;
-
-                if (Terraria.Program.LaunchParameters.TryGetValue("-lang", out var langArg)
-                    && int.TryParse(langArg, out var langId)) {
-                    if (GameCulture._legacyCultures.TryGetValue(langId, out var culture)) {
-                        return Redirect(culture.CultureInfo);
-                    }
-                }
-
-                if (Terraria.Program.LaunchParameters.TryGetValue("-language", out var languageArg)) {
-                    try {
-                        var culture = Utilities.Culture.FindBestMatch(
-                            GameCulture._legacyCultures.Values,
-                            CultureInfo.GetCultureInfo(languageArg),
-                            gc => gc.CultureInfo);
-                        if (culture != null) {
-                            return Redirect(culture.CultureInfo);
-                        }
-                    }
-                    catch (CultureNotFoundException) {
-                    }
-                }
-
-                if (LanguageManager.Instance.ActiveCulture == GameCulture.DefaultCulture) {
-                    const BindingFlags bf = BindingFlags.NonPublic | BindingFlags.Static;
-                    // LanguageManager.SetLanguage will change this so we need to reset it back to null
-                    var currentThreadUICultureField = typeof(CultureInfo).GetField("s_currentThreadUICulture", bf);
-                    currentThreadUICultureField?.SetValue(null, null);
-
-                    var legacyCulture = Utilities.Culture.FindBestMatch(
-                        GameCulture._legacyCultures.Values,
-                        CultureInfo.CurrentUICulture,
-                        gc => gc.CultureInfo);
-
-                    if (legacyCulture != null) {
-                        LanguageManager.Instance.SetLanguage(legacyCulture);
-                        currentThreadUICultureField?.SetValue(null, null);
-                    }
-                }
-                return CultureInfo.CurrentUICulture;
+                return UnifierApi.TranslationCultureInfo;
             }
         }
         /// <value>Instance of a <c>GetText.Catalog</c> loaded with TShockAPI translations for user's specified language</value>
